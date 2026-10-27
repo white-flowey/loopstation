@@ -1,5 +1,5 @@
 // Drumloop Station – offline cache. VERSION is set automatically by the build.
-const VERSION = 'drumloop-f5e5d304b4';
+const VERSION = 'drumloop-614493b6a4';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
