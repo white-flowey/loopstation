@@ -235,11 +235,22 @@ const clamp=v=>Math.max(0,Math.min(1,v));
 const DRUM_NAMES={crashL:'Crash L',tom1:'Tom 1',tom2:'Tom 2',ride:'Ride',crashR:'Crash R',hho:'HH auf',hhc:'HH zu',snare:'Snare',floor:'Floor',kick:'Kick'};
 const DRUM_SHORT={hho:'auf',hhc:'HH zu',pedal:'zu'};
 const KITS={
-  synth:{label:'Akustik · Synth',names:DRUM_NAMES,short:DRUM_SHORT},
-  akustik:{label:'Akustik · Samples',files:true,names:DRUM_NAMES,short:DRUM_SHORT},
-  tr808:{label:'TR-808',files:true,names:{...DRUM_NAMES,tom1:'Tom hoch',tom2:'Tom mitte',floor:'Tom tief',ride:'Cowbell',crashL:'Clap',crashR:'Cymbal'},short:DRUM_SHORT},
-  tr707:{label:'TR-707',files:true,names:{...DRUM_NAMES,tom1:'Tom hoch',tom2:'Tom mitte',floor:'Tom tief',crashL:'Crash',crashR:'Clap'},short:DRUM_SHORT},
-  perc:{label:'Percussion',files:true,names:{kick:'Cajón Bass',snare:'Cajón Slap',tom1:'Bongo',tom2:'Conga',floor:'Tumba',hhc:'Shaker',hho:'Tambourin',ride:'Cowbell',crashL:'Clap',crashR:'Triangel'},short:{hho:'Tamb.',hhc:'Shaker',pedal:'Shaker'}},
+  synth:{label:'Akustik · Synth',look:'kit',theme:'natural',names:DRUM_NAMES,short:DRUM_SHORT},
+  pop:{label:'Pop',look:'kit',theme:'pop',names:DRUM_NAMES,short:DRUM_SHORT},
+  rock:{label:'Rock',look:'kit',theme:'rock',names:DRUM_NAMES,short:DRUM_SHORT},
+  akustik:{label:'Akustik · Samples',files:true,look:'kit',theme:'wood',names:DRUM_NAMES,short:DRUM_SHORT},
+  tr808:{label:'TR-808',files:true,look:'machine',theme:'m808',names:{...DRUM_NAMES,tom1:'Tom hoch',tom2:'Tom mitte',floor:'Tom tief',ride:'Cowbell',crashL:'Clap',crashR:'Cymbal'},short:DRUM_SHORT},
+  tr707:{label:'TR-707',files:true,look:'machine',theme:'m707',names:{...DRUM_NAMES,tom1:'Tom hoch',tom2:'Tom mitte',floor:'Tom tief',crashL:'Crash',crashR:'Clap'},short:DRUM_SHORT},
+  perc:{label:'Percussion',files:true,look:'perc',names:{kick:'Cajón Bass',snare:'Cajón Slap',tom1:'Bongo',tom2:'Conga',floor:'Tumba',hhc:'Shaker',hho:'Tambourin',ride:'Cowbell',crashL:'Clap',crashR:'Triangel'},short:{hho:'Tamb.',hhc:'Shaker',pedal:'Shaker'}},
+};
+// flat colour sets for the kit drawings
+const THEMES={
+  natural:{shell:'#3b4149',head:'#e7e3d7',cym:'#c7a24f',cymD:'#a5833a',hw:'#8e969f',txt:'#3a3934',ctxt:'#4a3810',ktxt:'#e9ebee',pedal:'#3a4048'},
+  wood:{shell:'#7a4a2b',head:'#ece4d2',cym:'#c29a48',cymD:'#9d7b34',hw:'#b5bcc4',txt:'#3d3326',ctxt:'#4a3810',ktxt:'#f1e6d6',pedal:'#3a4048'},
+  pop:{shell:'#2f6fd6',head:'#f4f4f1',cym:'#d6b860',cymD:'#b49744',hw:'#c9d0d8',txt:'#2c3440',ctxt:'#4a3810',ktxt:'#f4f6fb',pedal:'#3a4048'},
+  rock:{shell:'#b3261e',head:'#e6e2d8',cym:'#b78f3c',cymD:'#8f6e2a',hw:'#24272b',txt:'#33302b',ctxt:'#3f2e0b',ktxt:'#f4e9e7',pedal:'#2c2f34'},
+  m808:{panel:'#1e1f22',strip:'#2a2b2f',txt:'#1c1a17',led:'#3a1410',ledOn:'#ff4a3d',keys:{crashL:'#e8432e',tom1:'#e8432e',tom2:'#f08a24',ride:'#f08a24',crashR:'#f2c230',hho:'#f2c230',hhc:'#efe9d8',snare:'#efe9d8',floor:'#e8432e',kick:'#f08a24'}},
+  m707:{panel:'#2b2d31',strip:'#3a3d42',txt:'#24262a',led:'#3d2a1d',ledOn:'#ff8a3d',keys:{crashL:'#d5d8dc',tom1:'#d5d8dc',tom2:'#d5d8dc',ride:'#d5d8dc',crashR:'#d5d8dc',hho:'#d5d8dc',hhc:'#d5d8dc',snare:'#f26b1d',floor:'#d5d8dc',kick:'#f26b1d'}},
 };
 
 /* ---------- synthesis (pre-rendered once) ---------- */
@@ -274,23 +285,54 @@ const RECIPES={
   ride:[3,(o,out)=>{chain(metal(o,58,3),filt(o,'bandpass',5200,1.4),vca(o,.8,.7),out);const n=noise(o,3);chain(n,filt(o,'highpass',7000),vca(o,.22,.5),out);n.start(0);
     [[780,.25],[1170,.15],[2350,.08]].forEach(([f,a])=>{const s=osc(o,'sine',f);chain(s,vca(o,a,.45),out);s.start(0)})}],
 };
+// Pop: tight, punchy, bright · Rock: big, driven, long
+const POP={...RECIPES,
+  kick:[.6,(o,out)=>{const a=osc(o,'sine',200);a.frequency.exponentialRampToValueAtTime(62,.045);a.frequency.exponentialRampToValueAtTime(48,.35);
+    chain(a,vca(o,1,.11,.002),shaper(o,2.6),out);a.start(0);
+    const n=noise(o,.04);chain(n,filt(o,'highpass',3200),vca(o,.75,.005),out);n.start(0)}],
+  snare:[.5,(o,out)=>{[[205,.45],[370,.22]].forEach(([f,a])=>{const s=osc(o,'triangle',f*1.15);s.frequency.exponentialRampToValueAtTime(f,.025);chain(s,vca(o,a,.04),out);s.start(0)});
+    const pk=filt(o,'peaking',6000,.8);pk.gain.value=8;const n=noise(o,.5);chain(n,filt(o,'highpass',1800),pk,vca(o,1,.07),out);n.start(0);
+    const c=noise(o,.3),g=o.createGain();g.gain.setValueAtTime(0,0);[0,.009,.018].forEach(t=>{g.gain.setValueAtTime(.7,t);g.gain.setTargetAtTime(0,t+.001,.003)});
+    g.gain.setValueAtTime(.5,.027);g.gain.setTargetAtTime(0,.028,.05);chain(c,filt(o,'bandpass',1500,.9),g,out);c.start(0)}],
+  tom1:tom(225,.11), tom2:tom(172,.13), floor:tom(118,.17),
+  hhc:[.25,(o,out)=>{chain(metal(o,46,.25),filt(o,'bandpass',11000,.7),filt(o,'highpass',8000),vca(o,1,.016),out);const n=noise(o,.25);chain(n,filt(o,'highpass',9000),vca(o,.4,.012),out);n.start(0)}],
+  hho:[1.2,(o,out)=>{chain(metal(o,46,1.2),filt(o,'bandpass',11000,.7),filt(o,'highpass',8000),vca(o,1,.2,.002),out);const n=noise(o,1.2);chain(n,filt(o,'highpass',9000),vca(o,.4,.16),out);n.start(0)}],
+  crashL:crash(40,7200), crashR:crash(47,8200),
+};
+const ROCK={...RECIPES,
+  kick:[1,(o,out)=>{const a=osc(o,'sine',155);a.frequency.exponentialRampToValueAtTime(52,.06);a.frequency.exponentialRampToValueAtTime(40,.6);
+    chain(a,vca(o,1,.2,.002),shaper(o,4),out);a.start(0);
+    const b=osc(o,'sine',55);chain(b,vca(o,.5,.26,.004),out);b.start(0);
+    const n=noise(o,.05);chain(n,filt(o,'bandpass',1800,.8),vca(o,.6,.008),out);n.start(0)}],
+  snare:[.9,(o,out)=>{[[172,.6],[300,.3]].forEach(([f,a])=>{const s=osc(o,'triangle',f*1.2);s.frequency.exponentialRampToValueAtTime(f,.03);chain(s,vca(o,a,.075),shaper(o,2.5),out);s.start(0)});
+    const n=noise(o,.9);chain(n,filt(o,'highpass',1000),vca(o,1,.14),shaper(o,3),filt(o,'lowpass',9000),out);n.start(0)}],
+  tom1:tom(172,.2), tom2:tom(126,.24), floor:tom(82,.32),
+  hhc:[.35,(o,out)=>{chain(metal(o,38,.35),filt(o,'bandpass',9000,.7),filt(o,'highpass',6500),vca(o,1,.03),out);const n=noise(o,.35);chain(n,filt(o,'highpass',7000),vca(o,.4,.02),out);n.start(0)}],
+  hho:[2,(o,out)=>{chain(metal(o,38,2),filt(o,'bandpass',9000,.7),filt(o,'highpass',6500),vca(o,1,.42,.002),out);const n=noise(o,2);chain(n,filt(o,'highpass',7000),vca(o,.4,.32),out);n.start(0)}],
+  crashL:[5,(o,out)=>{chain(metal(o,33,5),filt(o,'highpass',3000),vca(o,.6,1.3,.002),out);const n=noise(o,5);chain(n,filt(o,'bandpass',5200,.5),vca(o,1,1.1,.003),out);n.start(0);
+    const m=noise(o,.25);chain(m,filt(o,'highpass',1200),vca(o,.8,.05),out);m.start(0)}],
+  crashR:[5,(o,out)=>{chain(metal(o,39,5),filt(o,'highpass',3200),vca(o,.6,1.2,.002),out);const n=noise(o,5);chain(n,filt(o,'bandpass',6200,.5),vca(o,1,1,.003),out);n.start(0);
+    const m=noise(o,.25);chain(m,filt(o,'highpass',1200),vca(o,.8,.05),out);m.start(0)}],
+};
+const SYNTH_SETS={synth:RECIPES,pop:POP,rock:ROCK};
 const BUF={synth:{}};
 const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
 function normalize(b){const a=b.getChannelData(0);let pk=0;for(let i=0;i<a.length;i++)pk=Math.max(pk,Math.abs(a[i]));
   const g=.95/(pk||1),fade=Math.floor(a.length*.1);for(let i=0;i<a.length;i++){a[i]*=g;if(i>a.length-fade)a[i]*=(a.length-i)/fade}return b}
-async function renderSynth(){
-  await Promise.all(Object.entries(RECIPES).map(async([id,[d,build]])=>{
-    const o=new OAC(1,Math.ceil(SR*d),SR);build(o,o.destination);BUF.synth[id]=normalize(await o.startRendering());
+async function renderSet(k){
+  BUF[k]=BUF[k]||{};
+  await Promise.all(Object.entries(SYNTH_SETS[k]).map(async([id,[d,build]])=>{
+    const o=new OAC(1,Math.ceil(SR*d),SR);build(o,o.destination);BUF[k][id]=normalize(await o.startRendering());
   }));
 }
-const ready=renderSynth();
-// sample kits: loaded on first use from samples/<kit>/<sound>.wav (cached offline by the app)
+const ready=renderSet('synth');
+// other kits load on first use: synth presets are rendered, sample kits come from samples/<kit>/<sound>.wav (cached offline)
 const decoder=new OAC(1,1,SR);
 const decode=ab=>new Promise((res,rej)=>{const p=decoder.decodeAudioData(ab,res,rej);if(p&&p.then)p.then(res,rej)});
-const kitLoads={};
+const kitLoads={synth:ready};
 function loadKit(k){
-  if(!KITS[k]||!KITS[k].files)return Promise.resolve();
-  if(!kitLoads[k])kitLoads[k]=(async()=>{BUF[k]={};
+  if(!KITS[k])return Promise.resolve();
+  if(!kitLoads[k])kitLoads[k]=SYNTH_SETS[k]?renderSet(k):(async()=>{BUF[k]={};
     await Promise.all(SOUNDS.map(async s=>{try{const r=await fetch(`samples/${k}/${s.id}.wav`);if(!r.ok)throw 0;
       const b=await decode(await r.arrayBuffer());const m=b.numberOfChannels>1?mono(b):b;BUF[k][s.id]=normalize(m)}catch(e){}}));
   })();
@@ -503,83 +545,95 @@ mEl.innerHTML=`<div class="fwrap"><div class="fader"></div></div><button class="
 const showMaster=makeFader(mEl.querySelector('.fader'),()=>st.mvol,setMasterVol,'Gesamtlautstärke');
 press($('#allBtn'),allPress);
 
-/* playing surfaces: one per station, kit top view + pad grid */
+/* playing surfaces: one per station; drawing depends on the instrument type (kit, drum machine, percussion) */
 const NS='http://www.w3.org/2000/svg';
-const FL=[{},{}],LBL=[[],[]];
+const FL=[{},{}];
 const addFl=(si,id,el)=>(FL[si][id]=FL[si][id]||[]).push(el);
+instEl.forEach((host,si)=>{
+  host.svg=document.createElementNS(NS,'svg');host.svg.setAttribute('viewBox','0 0 1040 600');host.svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+  host.svg.setAttribute('role','group');
+  host.pads=document.createElement('div');host.pads.className='pads';host.append(host.svg,host.pads);
+  host.svg.addEventListener('pointerdown',e=>{const t=e.target.closest('[data-s]');if(!t)return;e.preventDefault();hit(si,t.dataset.s,e.timeStamp)});
+  host.svg.addEventListener('contextmenu',e=>e.preventDefault());
+});
 function buildSurface(si){
-  const host=instEl[si];
-  const pads=document.createElement('div');pads.className='pads';
+  const host=instEl[si],kit=KITS[stations[si].kit],svg=host.svg,pads=host.pads;
+  FL[si]={};svg.innerHTML='';pads.innerHTML='';svg.setAttribute('aria-label',kit.label);
+  const nm=id=>kit.names[id],sh=k=>(kit.short&&kit.short[k])||DRUM_SHORT[k];
   SOUNDS.forEach(s=>{
-    const b=document.createElement('button');b.className='pad'+(s.cym?' cym':'');
-    b.innerHTML=`<span class="gl"></span><span class="ky">${si===0?s.k:''}</span><span class="nm"></span>`;
+    const b=document.createElement('button');b.className='pad'+(s.cym?' cym':'');b.setAttribute('aria-label',nm(s.id));
+    b.innerHTML=`<span class="gl"></span><span class="ky">${si===0?s.k:''}</span><span class="nm">${nm(s.id)}</span>`;
     b.addEventListener('pointerdown',e=>{e.preventDefault();hit(si,s.id,e.timeStamp)});
     b.addEventListener('click',e=>{if(e.detail===0)hit(si,s.id)});
-    pads.appendChild(b);addFl(si,s.id,b.querySelector('.gl'));LBL[si].push({el:b.querySelector('.nm'),id:s.id,pad:1});b.lbl=s.id;
+    pads.appendChild(b);addFl(si,s.id,b.querySelector('.gl'));
   });
-  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 1040 600');svg.setAttribute('preserveAspectRatio','xMidYMid meet');svg.setAttribute('role','group');svg.setAttribute('aria-label','Schlagzeug');
-  host.append(svg,pads);host.svg=svg;host.pads=pads;
-  const p=`k${si}`;
   const E=(tag,at,parent)=>{const e=document.createElementNS(NS,tag);for(const k in at)e.setAttribute(k,at[k]);(parent||svg).appendChild(e);return e};
-  svg.innerHTML=`<defs>
-   <radialGradient id="${p}Cym"><stop offset="0" stop-color="#f3dc93"/><stop offset=".16" stop-color="#d1ab52"/><stop offset=".22" stop-color="#b48c36"/><stop offset=".8" stop-color="#9a752a"/><stop offset="1" stop-color="#6c521f"/></radialGradient>
-   <radialGradient id="${p}CymD"><stop offset="0" stop-color="#e2c679"/><stop offset=".3" stop-color="#a98330"/><stop offset="1" stop-color="#7b5e22"/></radialGradient>
-   <radialGradient id="${p}Head" cx="45%" cy="40%"><stop offset="0" stop-color="#f4f2ec"/><stop offset="1" stop-color="#cdc8b8"/></radialGradient></defs>`;
-  const txt=(g,x,y,key,fill,size)=>{const t=E('text',{x,y,'text-anchor':'middle','dominant-baseline':'middle',fill,'font-size':size||22},g);LBL[si].push({el:t,id:key});return t};
-  function cymbal(id,cx,cy,r){
-    const g=E('g',{'data-s':id});
-    E('circle',{cx,cy,r,fill:`url(#${p}Cym)`,stroke:'#5a441a','stroke-width':2},g);
-    [.84,.68,.52,.36].forEach(f=>E('circle',{cx,cy,r:r*f,fill:'none',stroke:'rgba(70,48,10,.22)','stroke-width':2},g));
-    E('circle',{cx,cy,r:r*.2,fill:`url(#${p}CymD)`,stroke:'rgba(70,48,10,.35)','stroke-width':2},g);
-    E('circle',{cx,cy,r:5,fill:'#2a2e34'},g);
-    addFl(si,id,E('circle',{class:'fl',cx,cy,r,fill:'#fff'},g));
-    txt(g,cx,cy+r*.6,id,'rgba(40,28,6,.78)',20);
+  const G=id=>E('g',{'data-s':id});
+  const T=(g,x,y,s,fill,size)=>{const t=E('text',{x,y,'text-anchor':'middle','dominant-baseline':'middle',fill,'font-size':size||22},g);t.textContent=s;return t};
+  const F=(g,id,shape,at)=>addFl(si,id,E(shape,{...at,class:'fl',fill:'#fff'},g));
+  if(kit.look==='kit')drawKit(THEMES[kit.theme]);else if(kit.look==='machine')drawMachine(THEMES[kit.theme]);else drawPerc();
+  setView(st.view);
+
+  function drawKit(c){ // top view from the drummer's seat, flat colours
+    const drum=(id,cx,cy,r)=>{const g=G(id);E('circle',{cx,cy,r,fill:c.shell},g);E('circle',{cx,cy,r:r-10,fill:c.head},g);F(g,id,'circle',{cx,cy,r});T(g,cx,cy,nm(id),c.txt,22)};
+    const cym=(id,cx,cy,r)=>{const g=G(id);E('circle',{cx,cy,r,fill:c.cym},g);E('circle',{cx,cy,r:r*.62,fill:'none',stroke:c.cymD,'stroke-width':2,opacity:.6},g);
+      E('circle',{cx,cy,r:r*.2,fill:c.cymD},g);F(g,id,'circle',{cx,cy,r});T(g,cx,cy+r*.62,nm(id),c.ctxt,20)};
+    {const g=G('kick');E('rect',{x:420,y:250,width:200,height:272,rx:22,fill:c.shell},g);
+      E('rect',{x:414,y:256,width:212,height:10,rx:5,fill:c.hw},g);E('rect',{x:414,y:506,width:212,height:10,rx:5,fill:c.hw},g);
+      E('rect',{x:486,y:530,width:68,height:64,rx:10,fill:c.pedal},g);E('circle',{cx:520,cy:524,r:11,fill:c.hw},g);
+      F(g,'kick','rect',{x:420,y:250,width:200,height:344,rx:22});T(g,520,420,nm('kick'),c.ktxt,24)}
+    drum('tom1',432,214,72);drum('tom2',610,214,78);drum('snare',302,420,90);drum('floor',760,456,98);
+    cym('crashL',228,114,110);cym('crashR',822,108,104);cym('ride',936,318,100);
+    const cx=120,cy=330,r=100; // hi-hat: outer ring open, centre closed, pedal closed (chokes an open hat)
+    {const g=G('hho');E('circle',{cx,cy,r,fill:c.cym},g);F(g,'hho','circle',{cx,cy,r});T(g,cx,cy-r+18,sh('hho'),c.ctxt,18)}
+    {const g=G('hhc');E('circle',{cx,cy,r:60,fill:c.cymD,stroke:c.ctxt,'stroke-width':2,'stroke-dasharray':'6 6','stroke-opacity':.5},g);
+      E('circle',{cx,cy,r:13,fill:c.cym},g);F(g,'hhc','circle',{cx,cy,r:60});T(g,cx,cy+34,sh('hhc'),c.ctxt,18)}
+    {const g=G('hhc');E('rect',{x:86,y:474,width:68,height:116,rx:10,fill:c.pedal},g);
+      E('rect',{x:98,y:490,width:44,height:5,rx:2.5,fill:c.hw,opacity:.6},g);E('rect',{x:98,y:503,width:44,height:5,rx:2.5,fill:c.hw,opacity:.6},g);
+      F(g,'hhc','rect',{x:86,y:474,width:68,height:116,rx:10});T(g,120,556,sh('pedal'),'#e9ebee',17)}
   }
-  function drum(id,cx,cy,r){
-    const g=E('g',{'data-s':id});
-    E('circle',{cx,cy,r,fill:'#2b3037',stroke:'#4a515a','stroke-width':3},g);
-    for(let k=0;k<8;k++){const a=k/8*Math.PI*2+Math.PI/8;E('circle',{cx:cx+Math.cos(a)*(r-5),cy:cy+Math.sin(a)*(r-5),r:4.5,fill:'#9aa2ac'},g)}
-    E('circle',{cx,cy,r:r-11,fill:`url(#${p}Head)`},g);
-    addFl(si,id,E('circle',{class:'fl',cx,cy,r,fill:'#fff'},g));
-    txt(g,cx,cy,id,'rgba(40,40,36,.62)',22);
+  function drawMachine(c){ // drum machine: panel with two rows of instrument keys
+    E('rect',{x:16,y:40,width:1008,height:520,rx:18,fill:c.panel});
+    E('rect',{x:16,y:40,width:1008,height:44,rx:18,fill:c.strip});E('rect',{x:16,y:66,width:1008,height:18,fill:c.strip});
+    [0,1,2,3].forEach(i=>E('circle',{cx:60+i*44,cy:62,r:9,fill:'#55585e'}));
+    const order=[['crashL','tom1','tom2','ride','crashR'],['hho','hhc','snare','floor','kick']],w=172,h=206,gap=22,x0=(1040-5*w-4*gap)/2;
+    order.forEach((row,ri)=>row.forEach((id,ci)=>{
+      const x=x0+ci*(w+gap),y=110+ri*(h+gap),g=G(id);
+      E('rect',{x,y,width:w,height:h,rx:12,fill:c.keys[id]},g);
+      E('rect',{x:x+w/2-18,y:y+16,width:36,height:12,rx:3,fill:c.led},g);
+      const led=E('rect',{class:'fl',x:x+w/2-18,y:y+16,width:36,height:12,rx:3,fill:c.ledOn},g);addFl(si,id,led);
+      F(g,id,'rect',{x,y,width:w,height:h,rx:12});
+      T(g,x+w/2,y+h-28,nm(id),c.txt,22);
+    }));
   }
-  {const g=E('g',{'data-s':'kick'});
-    E('rect',{x:420,y:250,width:200,height:272,rx:24,fill:'#23272d',stroke:'#3d434c','stroke-width':4},g);
-    E('rect',{x:414,y:256,width:212,height:12,rx:6,fill:'#8e969f'},g);E('rect',{x:414,y:504,width:212,height:12,rx:6,fill:'#8e969f'},g);
-    E('rect',{x:486,y:530,width:68,height:64,rx:10,fill:'#3a4048',stroke:'#58606a','stroke-width':2},g);
-    E('circle',{cx:520,cy:524,r:12,fill:'#c9ced4'},g);
-    addFl(si,'kick',E('rect',{class:'fl',x:420,y:250,width:200,height:344,rx:24,fill:'#fff'},g));
-    txt(g,520,420,'kick','rgba(233,235,238,.6)',24);}
-  drum('tom1',432,214,72);drum('tom2',610,214,78);drum('snare',302,420,90);drum('floor',760,456,98);
-  cymbal('crashL',228,114,110);cymbal('crashR',822,108,104);cymbal('ride',936,318,100);
-  {const cx=120,cy=330,r=100; // hi-hat: outer ring open, centre closed, pedal closed (chokes an open hat)
-    const go=E('g',{'data-s':'hho'});
-    E('circle',{cx,cy,r,fill:`url(#${p}Cym)`,stroke:'#5a441a','stroke-width':2},go);
-    [.9,.78].forEach(f=>E('circle',{cx,cy,r:r*f,fill:'none',stroke:'rgba(70,48,10,.22)','stroke-width':2},go));
-    addFl(si,'hho',E('circle',{class:'fl',cx,cy,r,fill:'#fff'},go));
-    txt(go,cx,cy-r+17,'s:hho','rgba(40,28,6,.82)',18);
-    const gc=E('g',{'data-s':'hhc'});
-    E('circle',{cx,cy,r:60,fill:`url(#${p}CymD)`,stroke:'rgba(40,28,6,.55)','stroke-width':2,'stroke-dasharray':'6 5'},gc);
-    E('circle',{cx,cy,r:14,fill:'#c8a551',stroke:'rgba(70,48,10,.35)','stroke-width':2},gc);
-    addFl(si,'hhc',E('circle',{class:'fl',cx,cy,r:60,fill:'#fff'},gc));
-    txt(gc,cx,cy+34,'s:hhc','rgba(40,28,6,.82)',18);
-    const gp=E('g',{'data-s':'hhc'});
-    E('rect',{x:86,y:474,width:68,height:116,rx:10,fill:'#3a4048',stroke:'#58606a','stroke-width':2},gp);
-    E('rect',{x:98,y:488,width:44,height:6,rx:3,fill:'#58606a'},gp);E('rect',{x:98,y:502,width:44,height:6,rx:3,fill:'#58606a'},gp);
-    addFl(si,'hhc',E('rect',{class:'fl',x:86,y:474,width:68,height:116,rx:10,fill:'#fff'},gp));
-    txt(gp,120,556,'s:pedal','rgba(233,235,238,.65)',17);}
-  svg.addEventListener('pointerdown',e=>{const t=e.target.closest('[data-s]');if(!t)return;e.preventDefault();hit(si,t.dataset.s,e.timeStamp)});
-  svg.addEventListener('contextmenu',e=>e.preventDefault());
-}
-buildSurface(0);buildSurface(1);
-function labelSurface(si){
-  const k=KITS[stations[si].kit];
-  LBL[si].forEach(l=>{const t=l.id.startsWith('s:')?(k.short[l.id.slice(2)]||DRUM_SHORT[l.id.slice(2)]):k.names[l.id];l.el.textContent=t;
-    if(l.pad)l.el.parentNode.setAttribute('aria-label',t)});
-  stations[si].sel.value=stations[si].kit;
+  function drawPerc(){ // hand percussion: cajón, bongos, congas, small instruments
+    const wood='#c08a52',woodD='#8c5a2b',skin='#eadfc8',shell='#7a3f22',metal='#b7bcc2',txt='#3b2a18';
+    {const g=G('snare');E('rect',{x:400,y:300,width:240,height:80,rx:10,fill:wood},g);F(g,'snare','rect',{x:400,y:300,width:240,height:80,rx:10});T(g,520,340,nm('snare'),txt,20)}
+    {const g=G('kick');E('rect',{x:400,y:384,width:240,height:206,rx:10,fill:wood},g);E('circle',{cx:520,cy:470,r:34,fill:woodD},g);
+      F(g,'kick','rect',{x:400,y:384,width:240,height:206,rx:10});T(g,520,550,nm('kick'),txt,22)}
+    {const g=G('tom1');E('rect',{x:300,y:222,width:70,height:18,rx:6,fill:woodD},g);
+      E('circle',{cx:262,cy:232,r:62,fill:shell},g);E('circle',{cx:262,cy:232,r:54,fill:skin},g);
+      E('circle',{cx:366,cy:226,r:50,fill:shell},g);E('circle',{cx:366,cy:226,r:43,fill:skin},g);
+      F(g,'tom1','circle',{cx:262,cy:232,r:62});F(g,'tom1','circle',{cx:366,cy:226,r:50});T(g,262,232,nm('tom1'),txt,20)}
+    const conga=(id,cx,cy,r)=>{const g=G(id);E('circle',{cx,cy,r,fill:shell},g);E('circle',{cx,cy,r:r-12,fill:skin},g);F(g,id,'circle',{cx,cy,r});T(g,cx,cy,nm(id),txt,22)};
+    conga('tom2',760,330,90);conga('floor',928,470,100);
+    {const g=G('ride');E('path',{d:'M500 80 L620 80 L645 220 L475 220 Z',fill:metal},g);E('rect',{x:540,y:58,width:40,height:24,rx:6,fill:'#6e7379'},g);
+      F(g,'ride','path',{d:'M500 80 L620 80 L645 220 L475 220 Z'});T(g,560,170,nm('ride'),'#2b2e33',20)}
+    {const g=G('crashR');E('path',{d:'M830 40 L910 180 L750 180 Z',fill:'none',stroke:metal,'stroke-width':12,'stroke-linejoin':'round'},g);
+      E('path',{d:'M830 40 L910 180 L750 180 Z',fill:'rgba(0,0,0,0)'},g);
+      F(g,'crashR','path',{d:'M830 40 L910 180 L750 180 Z'});T(g,830,212,nm('crashR'),'#c9ced4',20)}
+    {const g=G('crashL');E('ellipse',{cx:110,cy:110,rx:46,ry:62,fill:'#d9b08c',transform:'rotate(-18 110 110)'},g);
+      E('ellipse',{cx:170,cy:104,rx:46,ry:62,fill:'#c99a74',transform:'rotate(18 170 104)'},g);
+      F(g,'crashL','ellipse',{cx:140,cy:107,rx:90,ry:68});T(g,140,196,nm('crashL'),'#c9ced4',20)}
+    {const g=G('hhc');E('rect',{x:70,y:398,width:170,height:56,rx:28,fill:'#d9a441'},g);E('rect',{x:226,y:414,width:40,height:24,rx:8,fill:woodD},g);
+      F(g,'hhc','rect',{x:70,y:398,width:196,height:56,rx:28});T(g,155,427,nm('hhc'),txt,19)}
+    {const g=G('hho');E('circle',{cx:230,cy:526,r:62,fill:'none',stroke:wood,'stroke-width':18},g);E('circle',{cx:230,cy:526,r:52,fill:'rgba(0,0,0,0)'},g);
+      for(let k=0;k<6;k++){const a=k/6*Math.PI*2;E('rect',{x:230+Math.cos(a)*62-9,y:526+Math.sin(a)*62-6,width:18,height:12,rx:3,fill:metal},g)}
+      F(g,'hho','circle',{cx:230,cy:526,r:72});T(g,230,526,nm('hho'),'#c9ced4',18)}
+  }
 }
 async function setKit(si,k){
-  if(!KITS[k])k='synth';stations[si].kit=k;labelSurface(si);save();
+  if(!KITS[k])k='synth';stations[si].kit=k;stations[si].sel.value=k;buildSurface(si);save();
   instEl[si].classList.add('loading');await loadKit(k);instEl[si].classList.remove('loading');
 }
 function flash(si,id,a){(FL[si][id]||[]).forEach(el=>{if(el.closest('[hidden]'))return;
