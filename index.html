@@ -83,7 +83,9 @@ button:focus-visible,select:focus-visible,input:focus-visible,.fader:focus-visib
 .ring.st-play .face svg{color:var(--play)}
 .ring.st-dub .face svg{color:var(--dub)}
 .ring.st-stop .face svg{color:var(--dim)}
-.allbtn{width:56px;height:56px;border-radius:50%;background:var(--raised);border:1px solid var(--line);display:grid;place-items:center;flex:none;margin-bottom:26px}
+.mspacer{height:44px;flex:none}
+.allwrap{flex:1;display:grid;place-items:center;width:100%}
+.allbtn{width:56px;height:56px;border-radius:50%;background:var(--raised);border:1px solid var(--line);display:grid;place-items:center}
 .allbtn svg{width:18px;height:18px}
 .allbtn.on{background:var(--play);border-color:var(--play);color:var(--bg)}
 
@@ -121,17 +123,13 @@ button:focus-visible,select:focus-visible,input:focus-visible,.fader:focus-visib
 #kitSvg text{font-family:var(--f-ui);font-weight:600;letter-spacing:.06em;pointer-events:none}
 #kitSvg .fl{pointer-events:none;opacity:0}
 
-/* landscape tablet / desktop: exactly one screen, nothing scrolls */
+/* landscape tablet / desktop: one screen, nothing scrolls; sections keep their natural height */
 @media (min-width:900px) and (min-height:600px){
   html,body{overflow:hidden;position:fixed;inset:0}
-  .wrap{height:100%}
-  .main{flex:1;min-height:0;grid-template-columns:clamp(320px,31vw,400px) minmax(0,1fr)}
-  .left,.right{min-height:0}
-  .console{flex:1;min-height:0}
-  .right>section{flex:1;min-height:0}
-  .kit{display:flex;align-items:center;justify-content:center}
-  #kitSvg{width:100%;height:100%;max-height:100%}
-  .pads{grid-auto-rows:auto;grid-template-rows:repeat(2,minmax(0,1fr));height:100%}
+  .main{grid-template-columns:clamp(320px,31vw,400px) minmax(0,1fr);align-items:start}
+  .fwrap{flex:none;height:190px}
+  .kit svg{max-height:calc(100vh - 110px)}
+  .pads{grid-auto-rows:130px}
 }
 @media (max-width:1100px){.bpmval .unit{display:none}.chip{padding:0 9px}.strip{gap:6px}}
 @media (max-width:560px){
@@ -453,7 +451,7 @@ tracks.forEach(tr=>{
   press(sb,()=>stopPress(tr.i));hold(sb,1500,()=>clearTrack(tr.i));
 });
 const mch=document.createElement('div');mch.className='ch master';
-mch.innerHTML=`<div class="fwrap"><div class="fader"></div></div><button class="allbtn" id="allBtn" aria-label="Alle Spuren starten / stoppen"></button><span class="cname">M</span>`;
+mch.innerHTML=`<div class="fwrap"><div class="fader"></div></div><span class="mspacer"></span><span class="allwrap"><button class="allbtn" id="allBtn" aria-label="Alle Spuren starten / stoppen"></button></span><span class="cname">M</span>`;
 consoleEl.appendChild(mch);
 const showMaster=makeFader(mch.querySelector('.fader'),()=>st.mvol,setMasterVol,'Gesamtlautstärke');
 press($('#allBtn'),allPress);
