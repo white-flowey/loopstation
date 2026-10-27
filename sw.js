@@ -1,6 +1,7 @@
 // Drumloop Station – offline cache. VERSION is set automatically by the build.
-const VERSION = 'drumloop-105d4c5cbb';
-const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
+const VERSION = 'drumloop-f5f8857a34';
+const SAMPLES = ["./samples/akustik/crashL.wav", "./samples/akustik/crashR.wav", "./samples/akustik/floor.wav", "./samples/akustik/hhc.wav", "./samples/akustik/hho.wav", "./samples/akustik/kick.wav", "./samples/akustik/ride.wav", "./samples/akustik/snare.wav", "./samples/akustik/tom1.wav", "./samples/akustik/tom2.wav", "./samples/perc/crashL.wav", "./samples/perc/crashR.wav", "./samples/perc/floor.wav", "./samples/perc/hhc.wav", "./samples/perc/hho.wav", "./samples/perc/kick.wav", "./samples/perc/ride.wav", "./samples/perc/snare.wav", "./samples/perc/tom1.wav", "./samples/perc/tom2.wav", "./samples/tr707/crashL.wav", "./samples/tr707/crashR.wav", "./samples/tr707/floor.wav", "./samples/tr707/hhc.wav", "./samples/tr707/hho.wav", "./samples/tr707/kick.wav", "./samples/tr707/ride.wav", "./samples/tr707/snare.wav", "./samples/tr707/tom1.wav", "./samples/tr707/tom2.wav", "./samples/tr808/crashL.wav", "./samples/tr808/crashR.wav", "./samples/tr808/floor.wav", "./samples/tr808/hhc.wav", "./samples/tr808/hho.wav", "./samples/tr808/kick.wav", "./samples/tr808/ride.wav", "./samples/tr808/snare.wav", "./samples/tr808/tom1.wav", "./samples/tr808/tom2.wav"];
+const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png', ...SAMPLES];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES.map(f => new Request(f, {cache: 'reload'})))).then(() => self.skipWaiting()));

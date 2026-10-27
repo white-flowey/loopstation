@@ -1,0 +1,9 @@
+Drum samples used by Drumloop Station
+
+akustik/, perc/  - Versilian Community Sample Library (VCSL) by Versilian Studios / Sam Gossner,
+                   https://github.com/sgossner/VCSL - CC0 1.0 (public domain), see vcsl-LICENSE-CC0.txt.
+tr808/           - Roland TR-808 samples recorded by Michael Fischer, from machines.hyperreal.org,
+                   distributed without licensing restrictions (via https://github.com/fluid-music/open-drums).
+tr707/           - Roland TR-707 samples recorded by Francois Dion, from machines.hyperreal.org,
+                   distributed without licensing restrictions (via https://github.com/fluid-music/open-drums).
+All files were converted to mono WAV, trimmed and faded out.
