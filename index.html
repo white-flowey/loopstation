@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#111316">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Drumloop">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -137,7 +137,8 @@ select{height:34px;border-radius:8px;background:var(--raised);border:0;color:var
 /* landscape tablet / desktop: instruments to the right of their station, one screen, nothing scrolls */
 @media (min-width:900px) and (min-height:600px){
   html,body{overflow:hidden;position:fixed;inset:0}
-  .main{grid-template-columns:clamp(250px,25vw,320px) 64px minmax(0,1fr);align-items:center}
+  .wrap{height:100%}
+  .main{flex:1;min-height:0;grid-template-columns:clamp(250px,25vw,320px) 64px minmax(0,1fr);align-items:center;align-content:center}
   #inst0{grid-column:3;grid-row:1}
   #cons1{grid-column:1;grid-row:2}
   #inst1{grid-column:3;grid-row:2}
