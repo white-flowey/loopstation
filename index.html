@@ -155,6 +155,64 @@ select{height:34px;border-radius:8px;background:var(--raised);border:0;color:var
   .dbl{--fh:clamp(40px,calc(50vh - 336px - env(safe-area-inset-top,0px)/2 - env(safe-area-inset-bottom,0px)/2),120px)}
 }
 @media (max-width:1100px){.bpmval .unit{display:none}.chip{padding:0 8px}.strip{gap:5px}.tabs button{padding:0 8px}.pos{min-width:70px}.step{width:30px}.vsep{display:none}}
+/* phone in landscape (e.g. iPhone 12 mini, 812×375): compact console, one station visible at a time */
+#stSw,#rotate{display:none}
+@media (orientation:landscape) and (max-height:500px){
+  html,body{overflow:hidden;position:fixed;inset:0}
+  body{font-size:13px;padding-top:calc(6px + env(safe-area-inset-top,0px));padding-bottom:calc(6px + env(safe-area-inset-bottom,0px))}
+  .wrap{height:100%;gap:6px;max-width:none}
+  .strip{flex-wrap:nowrap;gap:4px;padding:4px 6px;border-radius:10px}
+  .tabs{gap:2px}
+  .tabs button{height:28px;padding:0 6px;font-size:12px;letter-spacing:.08em}
+  .chip{height:28px;padding:0 7px;font-size:12px;letter-spacing:.04em}
+  .step{width:26px;height:28px;font-size:17px}
+  select{height:28px;font-size:13px;padding:0 4px}
+  #sig{font-size:13px}
+  #bpm{font-size:20px}
+  .bpmval{padding:0 2px}
+  .bpmval .unit,.vsep,#posLen{display:none}
+  .pos{height:28px;min-width:40px;flex:1 1 40px;padding:0 6px;gap:5px}
+  .strip>*{flex-shrink:0}.strip>.pos{flex-shrink:1}
+  #posTxt{font-size:14px;min-width:3ch}
+  body.bdbl #stSw{display:block}
+  .main{flex:1;min-height:0;grid-template-columns:minmax(0,212px) 46px minmax(0,1fr);gap:6px;align-items:center;align-content:center}
+  #cons0,#cons1{grid-column:1;grid-row:1}
+  #inst0,#inst1{grid-column:3;grid-row:1}
+  #master,.dbl #master{grid-row:1}
+  #prac,.dbl #prac{grid-column:1/3;grid-row:1}
+  .dbl[data-ps="0"] #cons1,.dbl[data-ps="0"] #inst1,.dbl[data-ps="1"] #cons0,.dbl[data-ps="1"] #inst0{display:none!important}
+  .main,.dbl{--fh:clamp(36px,calc(100vh - 290px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)),110px)}
+  .cons{padding:6px 8px 6px;row-gap:6px;column-gap:8px;border-radius:12px}
+  .cons .kitsel{height:26px}
+  .ch,.dbl .ch{gap:6px;padding-bottom:13px}
+  .ring,.dbl .ring{max-width:88px}
+  .stopbtn,.dbl .stopbtn{width:30px;height:30px}
+  .stopbtn svg{width:11px;height:11px}
+  .cname{font-size:12px}.clen{font-size:10px;right:2px}
+  .fader{width:36px}.fader .cap{width:28px;height:16px}
+  .masterp{padding:34px 0 6px;gap:6px;border-radius:12px}
+  .masterp .cname{left:7px;bottom:6px}
+  .masterp .fwrap{max-height:none}
+  .allbtn{width:38px;height:38px;margin-bottom:22px}
+  .allbtn svg{width:14px;height:14px}
+  .inst svg,.dbl .inst svg{max-height:calc(100vh - 56px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+  .pads,.dbl .pads{grid-auto-rows:calc(50vh - 40px - env(safe-area-inset-bottom,0px)/2);gap:6px}
+  .pad{padding:6px;border-radius:9px}.pad .nm{font-size:13px;left:7px;bottom:6px}.pad .ky{display:none}
+  .prac{gap:6px;padding:8px;border-radius:12px}
+  .pread{min-height:30px}#pOff{font-size:30px}#pWord{font-size:13px}
+  #pMeter{height:50px}#pBar{height:60px}
+  .pstats b{font-size:14px}.pstats span{font-size:10px}
+  .big{width:40px;height:40px}.small{height:26px}
+}
+@media (orientation:landscape) and (max-height:500px) and (max-width:760px){#tap{display:none}}
+/* phone held upright: ask to rotate */
+@media (orientation:portrait) and (max-width:600px){
+  html,body{overflow:hidden;position:fixed;inset:0}
+  #rotate{display:grid;position:fixed;inset:0;z-index:50;background:var(--bg);place-items:center;text-align:center;padding:24px}
+  #rotate svg{width:72px;height:72px;color:var(--fg);margin:0 auto 18px;display:block}
+  #rotate b{display:block;font-size:22px;letter-spacing:.06em;margin-bottom:6px}
+  #rotate span{color:var(--dim);font-size:15px}
+}
 @media (max-width:560px){
   .cons{column-gap:8px;padding:10px 8px}
   .pads{gap:7px;grid-auto-rows:80px}.pad{padding:8px}.pad .nm{font-size:14px;left:8px;bottom:7px}
@@ -164,6 +222,7 @@ select{height:34px;border-radius:8px;background:var(--raised);border:0;color:var
 <body>
 
 
+<div id="rotate" role="alert"><div><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="16" width="36" height="20" rx="3"/><path d="M14 10a14 14 0 0 1 20 0"/><path d="M34 4v6h-6"/></svg><b>Bitte quer halten</b><span>Die Loopstation läuft im Querformat.</span></div></div>
 <div class="wrap">
   <header class="strip">
     <nav class="tabs" role="tablist">
@@ -185,6 +244,7 @@ select{height:34px;border-radius:8px;background:var(--raised);border:0;color:var
     <button class="chip" id="quant" aria-pressed="false" title="Quantisieren: aus / 1/16 / 1/8 / 1/4">Q <span id="qVal">aus</span></button>
     <div class="pos" aria-label="Taktposition"><span id="posTxt">–</span><canvas id="posCv"></canvas><span id="posLen"></span></div>
     <button class="chip" id="dblBtn" aria-pressed="false" title="Zweite Station mit eigenem Instrument">2×</button>
+    <button class="chip" id="stSw" aria-label="Station wechseln">A</button>
     <div class="seg" id="viewSeg" aria-label="Spielfläche">
       <button class="chip" data-v="kit" aria-pressed="true">Set</button>
       <button class="chip" data-v="pads" aria-pressed="false">Pads</button>
@@ -371,7 +431,7 @@ function clickAt(t,lvl){ // 2 bar, 1 beat, 0 subdivision
 }
 
 /* ---------- transport ---------- */
-const st={bpm:100,num:4,den:4,click:true,sub:false,quant:0,mvol:.8,view:'kit',double:false,running:false,anchorTime:0,anchorBeat:0,schedBeat:0};
+const st={bpm:100,num:4,den:4,click:true,sub:false,quant:0,mvol:.8,view:'kit',double:false,ps:0,running:false,anchorTime:0,anchorBeat:0,schedBeat:0};
 const stations=[{kit:'synth'},{kit:'tr808'}];
 const spb=()=>60/st.bpm;
 const beatAt=t=>st.anchorBeat+(t-st.anchorTime)/spb();
@@ -499,7 +559,9 @@ const ICON={
   clear:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5l10 10M15 5 5 15"/></svg>',
   recplay:'<svg viewBox="0 0 76 30"><path d="M2 3v24l20-12z" fill="currentColor"/><path d="M32 28 40 2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="60" cy="15" r="10" fill="currentColor"/></svg>',
 };
-function press(el,fn){el.addEventListener('pointerdown',e=>{if(e.button)return;e.preventDefault();fn()});el.addEventListener('click',e=>{if(e.detail===0)fn()})}
+// act on pointerdown (no tap delay); keyboard 'click' (detail 0) still works, but never right after a touch
+let lastPD=0;addEventListener('pointerdown',()=>{lastPD=performance.now()},true);
+function press(el,fn){el.addEventListener('pointerdown',e=>{if(e.button)return;e.preventDefault();fn()});el.addEventListener('click',e=>{if(e.detail===0&&performance.now()-lastPD>700)fn()})}
 function hold(el,ms,fn){let t=0;const clr=()=>{clearTimeout(t);t=0};
   el.addEventListener('pointerdown',e=>{if(e.button)return;clr();t=setTimeout(()=>{t=0;fn()},ms)});
   ['pointerup','pointercancel','pointerleave'].forEach(n=>el.addEventListener(n,clr));
@@ -564,7 +626,7 @@ function buildSurface(si){
     const b=document.createElement('button');b.className='pad'+(s.cym?' cym':'');b.setAttribute('aria-label',nm(s.id));
     b.innerHTML=`<span class="gl"></span><span class="ky">${si===0?s.k:''}</span><span class="nm">${nm(s.id)}</span>`;
     b.addEventListener('pointerdown',e=>{e.preventDefault();hit(si,s.id,e.timeStamp)});
-    b.addEventListener('click',e=>{if(e.detail===0)hit(si,s.id)});
+    b.addEventListener('click',e=>{if(e.detail===0&&performance.now()-lastPD>700)hit(si,s.id)});
     pads.appendChild(b);addFl(si,s.id,b.querySelector('.gl'));
   });
   const E=(tag,at,parent)=>{const e=document.createElementNS(NS,tag);for(const k in at)e.setAttribute(k,at[k]);(parent||svg).appendChild(e);return e};
@@ -644,13 +706,16 @@ function setView(v){st.view=v==='pads'?'pads':'kit';instEl.forEach(h=>{h.pads.hi
 document.querySelectorAll('#viewSeg button').forEach(b=>press(b,()=>{setView(b.dataset.v);save()}));
 
 function setDouble(on){
-  st.double=!!on;mainEl.classList.toggle('dbl',st.double);
+  st.double=!!on;mainEl.classList.toggle('dbl',st.double);document.body.classList.toggle('bdbl',st.double);
   consEl[1].hidden=!st.double||!pracEl.hidden;instEl[1].hidden=!st.double;
   $('#dblBtn').setAttribute('aria-pressed',st.double);
   if(!st.double&&ac){tracks.filter(t=>t.st===1).forEach(t=>{release(t);if(t.len)t.mode='stop'});maybeStop()}
   ui();
 }
 press($('#dblBtn'),()=>{setDouble(!st.double);save()});
+// phone: only one station fits; A/B switches which one is shown (both keep playing)
+function setPs(i){st.ps=i;mainEl.dataset.ps=i;$('#stSw').textContent=i?'B':'A'}
+press($('#stSw'),()=>setPs(st.ps?0:1));setPs(0);
 
 let wl=null;
 async function keepAwake(){try{if(st.running&&!wl&&navigator.wakeLock){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>{wl=null})}
