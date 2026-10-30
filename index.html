@@ -156,7 +156,13 @@ select{height:34px;border-radius:8px;background:var(--raised);border:0;color:var
 }
 @media (max-width:1100px){.bpmval .unit{display:none}.chip{padding:0 8px}.strip{gap:5px}.tabs button{padding:0 8px}.pos{min-width:70px}.step{width:30px}.vsep{display:none}}
 /* phone in landscape (e.g. iPhone 12 mini, 812×375): compact console, one station visible at a time */
-#stSw,#rotate{display:none}
+#stSw,#rotate,#bpmBtn{display:none}
+#bpmBtn b{font:600 16px var(--f-num);color:var(--fg);margin-right:3px}
+#bpmPop{position:fixed;z-index:40;display:flex;align-items:center;gap:6px;padding:8px;background:var(--panel);border:1px solid #4a515a;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.55)}
+#bpmPop .step{width:44px;height:44px;font-size:22px}
+#bpmPop .chip{height:44px;padding:0 16px;font-size:14px}
+#bpm2{width:3.2ch;height:44px;background:#0c0d0f;border:1px solid var(--line);border-radius:8px;color:var(--fg);font:600 26px var(--f-num);text-align:center;padding:0 6px;-moz-appearance:textfield;appearance:textfield;box-sizing:content-box}
+#bpm2::-webkit-inner-spin-button,#bpm2::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 @media (orientation:landscape) and (max-height:500px){
   html,body{overflow:hidden;position:fixed;inset:0}
   body{font-size:13px;padding-top:calc(6px + env(safe-area-inset-top,0px));padding-bottom:calc(6px + env(safe-area-inset-bottom,0px))}
@@ -170,7 +176,8 @@ select{height:34px;border-radius:8px;background:var(--raised);border:0;color:var
   #sig{font-size:13px}
   #bpm{font-size:20px}
   .bpmval{padding:0 2px}
-  .bpmval .unit,.vsep,#posLen{display:none}
+  .bpmval .unit,.vsep,#posLen,.strip .bpm{display:none}
+  #bpmBtn{display:block}
   .pos{height:28px;min-width:40px;flex:1 1 40px;padding:0 6px;gap:5px}
   .strip>*{flex-shrink:0}.strip>.pos{flex-shrink:1}
   #posTxt{font-size:14px;min-width:3ch}
@@ -204,7 +211,6 @@ select{height:34px;border-radius:8px;background:var(--raised);border:0;color:var
   .pstats b{font-size:14px}.pstats span{font-size:10px}
   .big{width:40px;height:40px}.small{height:26px}
 }
-@media (orientation:landscape) and (max-height:500px) and (max-width:760px){#tap{display:none}}
 /* phone held upright: ask to rotate */
 @media (orientation:portrait) and (max-width:600px){
   html,body{overflow:hidden;position:fixed;inset:0}
@@ -223,6 +229,12 @@ select{height:34px;border-radius:8px;background:var(--raised);border:0;color:var
 
 
 <div id="rotate" role="alert"><div><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="16" width="36" height="20" rx="3"/><path d="M14 10a14 14 0 0 1 20 0"/><path d="M34 4v6h-6"/></svg><b>Bitte quer halten</b><span>Die Loopstation läuft im Querformat.</span></div></div>
+<div id="bpmPop" role="dialog" aria-label="Tempo" hidden>
+  <button class="step" id="pDown" aria-label="Tempo langsamer">−</button>
+  <input id="bpm2" type="number" min="40" max="240" value="100" inputmode="numeric" pattern="[0-9]*" aria-label="BPM">
+  <button class="step" id="pUp" aria-label="Tempo schneller">+</button>
+  <button class="chip" id="tap2">Tap</button>
+</div>
 <div class="wrap">
   <header class="strip">
     <nav class="tabs" role="tablist">
@@ -236,6 +248,7 @@ select{height:34px;border-radius:8px;background:var(--raised);border:0;color:var
       <button class="step" id="bpmUp" aria-label="Tempo schneller">+</button>
       <button class="chip" id="tap">Tap</button>
     </div>
+    <button class="chip" id="bpmBtn" aria-haspopup="dialog" aria-expanded="false" aria-label="Tempo einstellen"><b id="bpmBtnVal">100</b> BPM</button>
     <select id="sig" aria-label="Taktart">
       <option>2/4</option><option>3/4</option><option selected>4/4</option><option>5/4</option><option>6/8</option><option>7/8</option><option>12/8</option>
     </select>
@@ -856,14 +869,27 @@ const bpmIn=$('#bpm');
 function setBpm(v){
   v=Math.max(40,Math.min(240,Math.round(v)||st.bpm));
   if(st.running&&ac){const now=ac.currentTime,b=beatAt(now);st.bpm=v;st.anchorTime=now;st.anchorBeat=b}else st.bpm=v;
-  bpmIn.value=v;save();
+  bpmIn.value=v;$('#bpmBtnVal').textContent=v;if(document.activeElement!==bpm2)bpm2.value=v;save();
 }
 bpmIn.addEventListener('change',()=>setBpm(+bpmIn.value));
 bpmIn.addEventListener('keydown',e=>{if(e.key==='Enter')bpmIn.blur()});
 press($('#bpmDown'),()=>setBpm(st.bpm-1));press($('#bpmUp'),()=>setBpm(st.bpm+1));
 let taps=[];
-press($('#tap'),()=>{const t=performance.now();if(taps.length&&t-taps[taps.length-1]>2000)taps=[];taps.push(t);taps=taps.slice(-5);
-  if(taps.length>1){const iv=(taps[taps.length-1]-taps[0])/(taps.length-1);setBpm(60000/iv)}});
+function tapTempo(){const t=performance.now();if(taps.length&&t-taps[taps.length-1]>2000)taps=[];taps.push(t);taps=taps.slice(-5);
+  if(taps.length>1){const iv=(taps[taps.length-1]-taps[0])/(taps.length-1);setBpm(60000/iv)}}
+press($('#tap'),tapTempo);
+/* phone: BPM button opens a popover with −/+, number pad entry and Tap */
+const bpm2=$('#bpm2'),pop=$('#bpmPop'),bpmBtn=$('#bpmBtn');
+function popOpen(){const r=bpmBtn.getBoundingClientRect();pop.hidden=false;pop.style.top=(r.bottom+6)+'px';
+  pop.style.left=Math.max(8,Math.min(r.left,innerWidth-pop.offsetWidth-8))+'px';bpm2.value=st.bpm;bpmBtn.setAttribute('aria-expanded','true')}
+function popClose(){if(pop.hidden)return;if(document.activeElement===bpm2){setBpm(+bpm2.value);bpm2.blur()}pop.hidden=true;bpmBtn.setAttribute('aria-expanded','false')}
+press(bpmBtn,()=>pop.hidden?popOpen():popClose());
+press($('#pDown'),()=>setBpm(st.bpm-1));press($('#pUp'),()=>setBpm(st.bpm+1));press($('#tap2'),tapTempo);
+bpm2.addEventListener('change',()=>setBpm(+bpm2.value));
+bpm2.addEventListener('keydown',e=>{if(e.key==='Enter'){setBpm(+bpm2.value);bpm2.blur()}});
+bpm2.addEventListener('focus',()=>bpm2.select());
+addEventListener('pointerdown',e=>{if(!pop.hidden&&!pop.contains(e.target)&&!bpmBtn.contains(e.target))popClose()},true);
+addEventListener('resize',popClose);
 $('#sig').addEventListener('change',e=>{const[n,d]=e.target.value.split('/').map(Number);st.num=n;st.den=d;save();ui()});
 const tog=(id,key)=>press($(id),()=>{st[key]=!st[key];$(id).setAttribute('aria-pressed',st[key]);save()});
 tog('#click','click');tog('#sub','sub');
@@ -889,7 +915,7 @@ function spacePress(){
   else allPress();
 }
 addEventListener('keydown',e=>{
-  if(e.target===bpmIn||e.target.tagName==='SELECT'||e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.target===bpmIn||e.target===bpm2||e.target.tagName==='SELECT'||e.metaKey||e.ctrlKey||e.altKey)return;
   if(e.code==='Space'){e.preventDefault();if(!e.repeat)!pracEl.hidden?(pr.on?pStop():pStart()):spacePress();return}
   if(e.code==='Escape'){e.preventDefault();if(st.running||tracks.some(t=>t.mode==='armed'))allPress();return}
   const dm=/^Digit([1-4])$/.exec(e.code);
@@ -915,7 +941,7 @@ try{const d=JSON.parse(localStorage.getItem(KEY)||'null');
       layers.forEach(l=>l.hits.forEach(h=>{if(h.r==null)h.r=h.pos||0}));
       if(layers.length){tracks[i].layers=layers;tracks[i].mode='stop';relayout(tracks[i])}});}
 }catch(e){}
-bpmIn.value=st.bpm;$('#sig').value=`${st.num}/${st.den}`;
+bpmIn.value=st.bpm;bpm2.value=st.bpm;$("#bpmBtnVal").textContent=st.bpm;$('#sig').value=`${st.num}/${st.den}`;
 $('#click').setAttribute('aria-pressed',st.click);$('#sub').setAttribute('aria-pressed',st.sub);
 qShow();pdivShow();pUi();pShow();setView(st.view);
 tracks.forEach(t=>t.showFader());showMaster();
