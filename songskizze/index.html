@@ -1213,7 +1213,7 @@ function stopTransport(){endChordRec();if(kbrec)kbFinish();if(DR.i>=0)dFinish();
 const cache=new Map();let cacheVer=-1;
 function compiled(it){
   if(cacheVer!==ver){cache.clear();cacheVer=ver}
-  const items=TL.items,k=items.indexOf(it),prev=TL.loop?it.seg:(k>0?items[k-1].seg:null),next=TL.loop?it.seg:(k<items.length-1?items[k+1].seg:null);
+  const items=TL.items,k=items.indexOf(it),prev=TL.loop?null:(k>0?items[k-1].seg:null),next=TL.loop?it.seg:(k<items.length-1?items[k+1].seg:null);
   const key=it.seg.id+'|'+(prev&&prev.id)+'|'+(next&&next.id);
   if(!cache.has(key))cache.set(key,compile(it.seg,prev,next));return cache.get(key);
 }
