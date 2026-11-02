@@ -1232,21 +1232,24 @@ function compile(seg,prev,next){
   // melody
   seg.melody.forEach(n=>ev.push({t:n.t,k:'p',m:n.m,d:n.d,v:n.v||.7,bus:'melody'}));
   // drums
-  const gp=GROOVES[seg.groove]?GROOVES[seg.groove].p:{};
-  for(let b=0;b<seg.bars;b++){
-    const lastBar=b===last;let p=gp;
-    if(lastBar&&seg.trans==='fill'&&seg.groove!=='none')p={kick:(gp.kick||[]).filter(s=>s<8),snare:[...(gp.snare||[]).filter(s=>s<8),14,15],hhc:(gp.hhc||[]).filter(s=>s<8),tom1:[8,9],tom2:[10,11],floor:[12,13]};
-    if(lastBar&&seg.trans==='build')p={kick:[0,4,8,12],snare:[0,2,4,6,8,9,10,11,12,13,14,15]};
-    if(lastBar&&seg.trans==='break')p={kick:[0],crash:[0]};
-    Object.entries(p).forEach(([s,steps])=>steps.forEach(x=>{const v=s==='snare'&&lastBar&&seg.trans==='build'?.35+x/24:drumAcc(s,x,steps);ev.push({t:b*4+x/4,k:'d',s,v})}));
-  }
+  // drums: the groove is a 1-bar loop on track 1 (deletable like any loop); the part's ending adds a fill/build/break on top
+  syncGroove(seg);
+  const hasDrums=(seg.dtr||[]).some(tr=>tr.on&&tr.layers.length),tx=seg.trans;
+  const muteFrom=hasDrums?(tx==='fill'?last*4+2:(tx==='build'||tx==='break')?last*4:null):null;
+  if(hasDrums){const p=tx==='fill'?{snare:[14,15],tom1:[8,9],tom2:[10,11],floor:[12,13]}:tx==='build'?{kick:[0,4,8,12],snare:[0,2,4,6,8,9,10,11,12,13,14,15]}:tx==='break'?{kick:[0],crash:[0]}:null;
+    if(p)Object.entries(p).forEach(([s,steps])=>steps.forEach(x=>{const v=s==='snare'&&tx==='build'?.35+x/24:drumAcc(s,x,steps);ev.push({t:last*4+x/4,k:'d',s,v})}))}
   if(prev&&['fill','build','crash'].includes(prev.trans))ev.push({t:0,k:'d',s:'crash',v:1,tc:1}); // transition crash
-  (seg.dtr||[]).forEach((tr,i)=>{if(!tr.on)return;tr.layers.forEach(l=>l.hits.forEach(h=>{const r=mod(Math.round(h.r*4)/4,l.len);for(let T=mod(l.start+r,l.len);T<L-1e-6;T+=l.len)ev.push({t:T,k:'d',s:h.s,v:h.v||1,tr:i})}))});
+  (seg.dtr||[]).forEach((tr,i)=>{if(!tr.on)return;tr.layers.forEach(l=>l.hits.forEach(h=>{const r=mod(Math.round(h.r*4)/4,l.len);for(let T=mod(l.start+r,l.len);T<L-1e-6;T+=l.len){if(l.gv&&muteFrom!=null&&T>=muteFrom-1e-6)continue;ev.push({t:T,k:'d',s:h.s,v:h.v||1,tr:i,gv:l.gv})}}))});
 
   if(seg.takes[seg.take])ev.push({t:0,k:'v',buf:seg.takes[seg.take]});
   return ev.sort((a,b)=>a.t-b.t);
 }
 // drum dynamics per instrument: kick leans on 1 (and 3), snare on the backbeat with softer ghost notes, cymbals on the beat with lighter off-beats
+// a groove preset becomes a 1-bar loop layer (flag gv) on track 1
+function grooveLayer(k){const g=GROOVES[k];if(!g||k==='none')return null;const hits=[];Object.entries(g.p).forEach(([s,steps])=>steps.forEach(x=>hits.push({s,r:x/4,v:drumAcc(s,x,steps)})));return{start:0,len:4,hits,gv:1,gk:k}}
+function setGroove(seg,k){if(!seg.dtr)return;const tr=seg.dtr[0];tr.layers=tr.layers.filter(l=>!l.gv);const L=grooveLayer(k);if(L){tr.layers.unshift(L);tr.on=true}seg.groove=GROOVES[k]?k:'none'}
+function syncGroove(seg){if(!seg.dtr)return;if(seg.groove&&seg.groove!=='none'&&!seg.dtr.some(t=>t.layers.some(l=>l.gv)))setGroove(seg,seg.groove)}
+function grooveGone(seg){if(seg.dtr&&!seg.dtr.some(t=>t.layers.some(l=>l.gv)))seg.groove='none'}
 function drumAcc(s,x,steps){const beat=x%4===0,b=x/4;
   if(s==='kick')return x===0?1:x===8?.92:beat?.84:.76;
   if(s==='snare')return beat&&(b===1||b===3)?1:beat?.82:steps.length>6?.8:.55;
@@ -1385,7 +1388,7 @@ function renderPartList(){
     song.segs[g.id]=g;renameFirst(t);const at=st.sel+1;song.arr.splice(at,0,g.id);touch();renderTimeline();selectPart(at);showSel();renderPartList()});
   lp.querySelectorAll('.prow').forEach(row=>{const i=+row.dataset.i;
     row.querySelectorAll('select[data-s]').forEach(sel=>{sel.addEventListener('pointerdown',e=>e.stopPropagation());sel.addEventListener('change',()=>{const g=segOf(i),k=sel.dataset.s;
-      if(k==='bars'){setBars(i,+sel.value);renderPartList();return}g[k]=sel.value;touch();renderChordsLane();drawDrumsLane();renderChordView()})});
+      if(k==='bars'){setBars(i,+sel.value);renderPartList();return}if(k==='groove')setGroove(g,sel.value);else g[k]=sel.value;touch();renderChordsLane();drawDrumsLane();renderChordView()})});
     row.querySelectorAll('[data-a]').forEach(b=>{b.addEventListener('pointerdown',e=>e.stopPropagation());b.addEventListener('click',e=>{e.stopPropagation();const a=b.dataset.a;
       if(a==='del'){if(song.arr.length<2){toast('Der letzte Teil bleibt');return}if(!b.classList.contains('on')){b.classList.add('on','arm');b.textContent='Löschen?';return}
         stopTransport();const id=song.arr.splice(i,1)[0];if(!song.arr.includes(id))delete song.segs[id];st.sel=Math.min(st.sel>i?st.sel-1:st.sel,song.arr.length-1);st.head=partsList()[st.sel].start;touch();renderAll();renderPartList();return}
@@ -1416,7 +1419,7 @@ press($('#sGo'),()=>{
   if(ns.kind==='leer'){const g=newSeg('verse',8);g.groove='none';song={key:song.key,bpm:song.bpm,segs:{[g.id]:g},arr:[g.id]}}
   else song=template(ns.kind);
   song.key={root:ns.root,minor:ns.minor};song.bpm=ns.bpm;song.palette=makePalette();song.kit=prev.kit||'synth';song.vmode=prev.vmode||'voice';song.vq=prev.vq==null?2:prev.vq;song.vp=prev.vp||'semi';song.dvol=prev.dvol||[.8,.8];
-  st.sel=0;st.head=0;st.cursor=null;start.hidden=true;$('#shade').hidden=true;touch();renderAll();
+  Object.values(song.segs).forEach(syncGroove);st.sel=0;st.head=0;st.cursor=null;start.hidden=true;$('#shade').hidden=true;touch();renderAll();
   toast(ns.kind==='leer'?'Leerer Song: Akkorde würfeln oder setzen':'Song angelegt – Akkorde gewürfelt');
 });
 
@@ -1838,7 +1841,7 @@ function drawDrumsLane(){
   partCanvases(rD).forEach(([p,cv],k)=>{const r=sizeCv(cv);if(!r)return;const[g,W,H,d]=r;g.clearRect(0,0,W,H);drawGrid(g,W,H,d,p.len);
     const seg=p.seg,L=p.len,prev=ps[k-1]?ps[k-1].seg:null,next=ps[k+1]?ps[k+1].seg:null,col=C('--c-'+seg.type);
     compile(seg,prev,next).filter(e=>e.k==='d').forEach(e=>{const x=gx(e.t,d)+Math.round(d),y=Math.round((row[e.s]||.5)*H);
-      g.fillStyle=e.tr!=null?C('--dub'):e.s==='kick'?C('--fg'):(e.s==='snare'||e.s.startsWith('tom')||e.s==='floor')?col:'#7f8791';g.globalAlpha=Math.min(1,.45+e.v*.55);
+      g.fillStyle=e.tr!=null&&!e.gv?C('--dub'):e.s==='kick'?C('--fg'):(e.s==='snare'||e.s.startsWith('tom')||e.s==='floor')?col:'#7f8791';g.globalAlpha=Math.min(1,.45+e.v*.55);
       g.fillRect(x,y-2*d,Math.max(2*d,gx(.25,d)-2*d),3*d)});
     g.globalAlpha=1});
 }
@@ -2094,8 +2097,8 @@ function dRingPress(i){ensureCtx();if(DR.i>=0&&DR.i!==i)dFinish();const tr=dTr(i
   else{if(segLoopOnSel())DR={i,mode:'rec',recStart:beatAt(ac.currentTime),pending:[]};else{startSegLoop(true);DR={i,mode:'rec',recStart:0,pending:[]}}}
   ui()}
 function dStopPress(i){ensureCtx();if(DR.i===i)dFinish();const tr=dTr(i);if(tr.layers.length&&tr.on){tr.on=false;touch()}ui()}
-function dUndo(i){if(DR.i===i){DR={i:-1};ui();return}const tr=dTr(i);if(tr.layers.length){tr.layers.pop();touch();drawDrumsLane()}flashT[i]=performance.now()}
-function dClear(i){if(DR.i===i)DR={i:-1};const tr=dTr(i);tr.layers=[];tr.on=true;touch();drawDrumsLane();flashT[i]=performance.now();ui()}
+function dUndo(i){if(DR.i===i){DR={i:-1};ui();return}const g=segOf(st.sel),tr=dTr(i);if(tr.layers.length){tr.layers.pop();grooveGone(g);touch();drawDrumsLane()}flashT[i]=performance.now()}
+function dClear(i){if(DR.i===i)DR={i:-1};const g=segOf(st.sel),tr=dTr(i);tr.layers=[];tr.on=true;grooveGone(g);touch();drawDrumsLane();flashT[i]=performance.now();ui()}
 const flashT=[0,0];
 function hitDrum(id,e){ensureCtx();const lag=evLag(e);playDrum(id,ac.currentTime,1,null,false);
   if(DR.i>=0&&st.running){const b=beatAt(ac.currentTime-lag);if(b>-.5)DR.pending.push({s:id,b})}}
@@ -2276,7 +2279,7 @@ function buildMixer(){
 }
 
 /* ================= boot ================= */
-H.last=snap();$('#kitSel').value=song.kit;buildKit();renderAll();setLane(st.lane);requestAnimationFrame(frame);if(firstRun)openStart();
+Object.values(song.segs).forEach(syncGroove);H.last=snap();$('#kitSel').value=song.kit;buildKit();renderAll();setLane(st.lane);requestAnimationFrame(frame);if(firstRun)openStart();
 })();
 </script>
 
