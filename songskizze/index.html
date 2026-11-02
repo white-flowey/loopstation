@@ -69,19 +69,20 @@ select{height:34px;border-radius:8px;background:var(--raised) url("data:image/sv
 .mini{height:26px;min-width:26px;border-radius:6px;background:var(--raised);display:grid;place-items:center;color:var(--dim);font-size:13px;flex:none;padding:0 6px}
 .mini.on{background:var(--rec);color:var(--bg)}
 #selName{font:700 13px var(--f-ui);letter-spacing:.06em;color:var(--fg);border-left:3px solid var(--pc);padding-left:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.h-ruler{height:28px}.h-drums,.h-chords,.h-vocal{height:40px}
+.h-ruler{height:22px}.h-drums,.h-chords,.h-vocal{height:40px}
 .scroller{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding:6px 0 8px}
 .track{position:relative;display:flex;flex-direction:column;gap:4px;min-width:100%}
 .ruler,.row{position:relative;flex:none}
 .row{border-radius:6px;background-color:#0e0f12;
 }
-.ruler{height:28px}
-.pblk{position:absolute;top:0;height:28px;border-radius:7px;background:color-mix(in srgb,var(--pc) 22%,var(--panel));border:1px solid color-mix(in srgb,var(--pc) 45%,transparent);
+.ruler{height:22px}
+.pblk{position:absolute;top:0;height:22px;border-radius:6px;background:color-mix(in srgb,var(--pc) 22%,var(--panel));border:1px solid color-mix(in srgb,var(--pc) 45%,transparent);
   text-align:left;padding:3px 8px;box-sizing:border-box;display:flex;align-items:flex-start;overflow:hidden}
 .pblk.sel{border-color:var(--fg);box-shadow:inset 0 0 0 1px var(--fg)}
-.pn{position:absolute;top:50%;transform:translateY(-50%);font-weight:700;font-size:14px;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--fg);pointer-events:none;text-align:left}
-.bn{position:absolute;top:50%;transform:translateY(-50%);font:600 10px var(--f-num);color:color-mix(in srgb,var(--fg) 55%,transparent);pointer-events:none}
-.padd{position:absolute;top:0;width:38px;height:38px;border-radius:7px;background:var(--raised);color:var(--dim);font-size:20px}
+.pn{position:absolute;left:2px;bottom:5px;line-height:1;font-weight:700;font-size:13px;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--fg);pointer-events:none;text-align:left}
+.bn,.pn .b1{font:600 10px/1 var(--f-num);color:color-mix(in srgb,var(--fg) 55%,transparent);letter-spacing:0}
+.bn{position:absolute;bottom:5px;pointer-events:none}.pn .b1{font-style:normal;margin-right:5px}
+.padd{position:absolute;top:0;width:22px;height:22px;line-height:1;border-radius:7px;background:var(--raised);color:var(--dim);font-size:20px}
 .tint{position:absolute;top:0;bottom:0;background:var(--pc);opacity:.05;pointer-events:none;border-left:1px solid color-mix(in srgb,var(--pc) 60%,transparent)}
 .tint.sel{opacity:.1}
 .row canvas{position:absolute;top:0;height:100%;z-index:0}
@@ -360,7 +361,7 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
   .credit{display:none}
   .tlbox{grid-template-columns:70px minmax(0,1fr);border-radius:10px}
   .labs{gap:3px;padding:4px 4px 6px 6px}.labs button{font-size:11px;letter-spacing:.08em;padding:0 5px}
-  .h-ruler,.ruler,.pblk,.padd{height:22px}.padd{width:22px;font-size:14px}.pblk{padding:1px 5px;border-radius:5px}.pn{font-size:11px;line-height:1.1}.bn{font-size:8px}
+  .h-ruler,.ruler,.pblk,.padd{height:18px}.padd{width:18px;font-size:13px}.pblk{border-radius:5px}.pn{font-size:11px;bottom:4px}.bn,.pn .b1{font-size:8px}.bn{bottom:4px}
   .h-drums,.h-chords,.h-vocal,.r-drums,.r-chords,.r-vocal{height:20px}
   .labs button{font-size:10px}
   .scroller{padding:4px 0 6px}.track{gap:3px}
@@ -417,7 +418,7 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
   #partBtn{max-width:100px}
   #bpmBtn small{display:none}
   .scroller{padding:3px 0 4px}.labs{padding:3px 4px 4px 6px;gap:2px}.track{gap:2px}
-  .h-ruler,.ruler,.pblk,.padd{height:20px}.padd{width:20px}.pn{font-size:10px}.bn{font-size:8px}
+  .h-ruler,.ruler,.pblk,.padd{height:17px}.padd{width:17px}.pn{font-size:10px;bottom:4px}.bn,.pn .b1{font-size:8px}.bn{bottom:4px}
   .h-drums,.h-chords,.h-vocal,.r-drums,.r-chords,.r-vocal{height:18px}
   .labs button{font-size:9.5px;letter-spacing:.06em}
   .cblk{font-size:10px;top:1px;bottom:1px}
@@ -1454,17 +1455,18 @@ function layout(){const bars=totalBeats()/4,w=scroller.clientWidth-50;
   track.style.width=(bars*PX+48)+'px';track.style.setProperty('--px',PX+'px')}
 function renderTimeline(){layout();renderRuler();renderTints();renderChordsLane();drawDrumsLane();drawVocalLane();placeHead();renderLabs();if(st.max)scroller.scrollLeft=bx(partsList()[st.sel].start);renderChordView();if(typeof renderVocal==='function')renderVocal()}
 press($('#maxBtn'),()=>{st.max=!st.max;$('#maxBtn').setAttribute('aria-pressed',st.max);renderTimeline();if(!st.max)showSel()});
+const ABBR={intro:'I',verse:'V',pre:'PC',chorus:'C',bridge:'B',outro:'O'};
+const shortName=g=>{const m=g.name.match(/^(Intro|Verse|Pre-Chorus|Chorus|Bridge|Outro)(?:\s+(\d+))?$/);return m?ABBR[g.type]+(m[2]||''):g.name};
 function renderRuler(){
   const ps=partsList(),seen=new Set();let h='';
   ps.forEach(p=>{const lk=seen.has(p.seg.id);seen.add(p.seg.id);
-    h+=`<button class="pblk${p.i===st.sel?' sel':''}" data-i="${p.i}" style="left:${bx(p.start)}px;width:${bx(p.len)}px;--pc:var(--c-${p.seg.type})"><span class="pn">${p.seg.name}${lk?' ↺':''}</span></button>`;
-    for(let b=0;b<p.seg.bars;b++)h+=`<span class="bn"${b===0?` data-p="${p.i}"`:''} style="left:${bx(p.start+b*4)+3}px">${p.start/4+b+1}</span>`});
+    h+=`<button class="pblk${p.i===st.sel?' sel':''}" data-i="${p.i}" style="left:${bx(p.start)}px;width:${bx(p.len)}px;--pc:var(--c-${p.seg.type})"><span class="pn" title="${p.seg.name}"><i class="b1">${p.start/4+1}</i>${shortName(p.seg)}${lk?'↺':''}</span></button>`;
+    for(let b=1;b<p.seg.bars;b++)h+=`<span class="bn" style="left:${bx(p.start+b*4)+3}px">${p.start/4+b+1}</span>`});
   h+=`<button class="padd" style="left:${bx(totalBeats())+4}px" aria-label="Teil hinzufügen">+</button>`;
   ruler.innerHTML=h;
   ruler.querySelectorAll('.pblk').forEach(b=>press(b,()=>selectPart(+b.dataset.i)));
-  // name right after the part's first bar number, cut (…) before it reaches the second one
-  ps.forEach(p=>{const blk=ruler.querySelector(`.pblk[data-i="${p.i}"]`),n=blk&&blk.querySelector('.pn'),b0=ruler.querySelector(`.bn[data-p="${p.i}"]`);if(!n||!b0)return;
-    const left=b0.offsetLeft-blk.offsetLeft+b0.offsetWidth+5,lim=(p.seg.bars>1?bx(4):bx(p.len))-left-5;n.style.left=left+'px';n.style.maxWidth=Math.max(0,lim)+'px';n.style.display=lim<8?'none':''});
+  // first bar number and name share one text line (same baseline); the name is cut (…) before the second bar number
+  ps.forEach(p=>{const n=ruler.querySelector(`.pblk[data-i="${p.i}"] .pn`);if(n)n.style.maxWidth=Math.max(0,(p.seg.bars>1?bx(4):bx(p.len))-6)+'px'});
   press(ruler.querySelector('.padd'),()=>openAddMenu(ruler.querySelector('.padd')));
 }
 function renderTints(){const ps=partsList();
