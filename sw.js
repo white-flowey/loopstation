@@ -12,6 +12,7 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
+  if (new URL(req.url).pathname.includes('/songskizze/')) return; // own app with its own service worker
   const isPage = req.mode === 'navigate' || /\/(index\.html)?$/.test(new URL(req.url).pathname);
   e.respondWith(isPage ? networkFirst(req) : cacheFirst(req));
 });
