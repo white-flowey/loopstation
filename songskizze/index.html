@@ -42,6 +42,7 @@ select{height:34px;border-radius:8px;background:var(--raised);border:0;color:var
 /* transport bar */
 .head{display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px 8px}
 .chip.ib{width:34px;padding:0}.chip.ib svg{width:16px;height:16px}
+#playBtn svg{width:16px;height:16px;flex:none}
 #partBtn{height:34px;border-radius:8px;background:var(--raised);padding:0 10px 0 9px;display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:15px;letter-spacing:.02em;border-left:3px solid var(--pc);margin-left:4px;max-width:190px}
 #partBtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #partBtn::after{content:"";width:7px;height:7px;border-right:2px solid var(--dim);border-bottom:2px solid var(--dim);transform:translateY(-2px) rotate(45deg);flex:none}
@@ -140,7 +141,11 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
   padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:12px}
 #editor{bottom:calc(14px + env(safe-area-inset-bottom,0px))}
 #start{top:50%;transform:translate(-50%,-50%);gap:16px}
-#start h2{margin:0;font-size:30px;font-weight:600}
+#start{gap:14px;width:min(620px,calc(100vw - 24px))}
+#start h3{align-items:center}
+.okbtn{width:44px;height:44px;border-radius:50%;color:var(--play);display:grid;place-items:center;margin:-6px -6px -6px 0}.okbtn svg{width:40px;height:40px}.okbtn:active{transform:scale(.94)}
+.srow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.srow select{height:38px;font-size:15px}
+.sbpm{display:inline-flex;align-items:center;gap:4px}.sbpm .chip{height:38px}#sBpm{font:600 22px var(--f-num);min-width:3ch;text-align:center}
 .sheet h3{margin:0;font-size:26px;font-weight:600;display:flex;align-items:baseline;gap:10px}
 .sheet h3 small{font:500 13px var(--f-num);color:var(--dim)}
 .opts{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
@@ -307,12 +312,13 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
 .check{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--fg);text-transform:none;letter-spacing:.02em}
 .check input{width:20px;height:20px;accent-color:var(--fg)}
 /* part list popup */
-#partPop{width:320px;max-height:min(70vh,520px)}
+#partPop{width:min(640px,calc(100vw - 16px));max-height:min(70vh,520px)}
 .plist{display:flex;flex-direction:column;gap:4px;overflow-y:auto;min-height:0;max-height:min(56vh,420px)}
 .prow{display:flex;align-items:center;gap:6px;height:40px;border-radius:8px;background:var(--raised);padding:0 6px 0 4px;border-left:3px solid var(--pc);touch-action:none;cursor:pointer;flex:none}
 .prow.sel{background:var(--raised2);box-shadow:inset 0 0 0 1px var(--fg)}
 .prow.drag{z-index:2;box-shadow:0 8px 22px rgba(0,0,0,.6);position:relative;opacity:.95}
-.prow .pnm{flex:1;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prow select{height:28px;font-size:13px;padding:0 4px;max-width:140px}
+.prow .pnm{flex:1;min-width:60px;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .prow small{font:600 11px var(--f-num);color:var(--dim)}
 .prow .mini{height:28px;min-width:28px}
 .prow .mini.arm{background:var(--rec);color:var(--bg);padding:0 8px}
@@ -326,9 +332,13 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
 @media (orientation:landscape) and (max-height:500px){
   body{padding-top:calc(4px + env(safe-area-inset-top,0px));padding-bottom:calc(2px + env(safe-area-inset-bottom,0px))}
   .app{gap:5px}
-  .head{padding:4px 6px;gap:4px;border-radius:10px}
-  .chip,select,#bpmBtn,#partBtn,#clock{height:30px}
-  .chip.ib{width:30px}.chip{padding:0 8px;font-size:13px}
+  html,body{overflow:hidden;height:100%}
+  .app{height:100%;min-height:0}
+  .lower{flex:1;min-height:0;overflow:hidden}.lower>.pane{min-height:0}
+  .head{padding:3px 5px;gap:4px;border-radius:9px}
+  .head .chip,.head select,#bpmBtn,#partBtn,#clock{height:26px}
+  .head .chip.ib,.head .chip.go{width:28px;min-width:28px}.head .chip.ib svg,#playBtn svg{width:14px;height:14px}
+  .chip{padding:0 8px;font-size:13px}
   #clock{font-size:14px;padding:0 8px;min-width:auto}
   #partBtn{font-size:13px;max-width:110px}
   #keySel{max-width:92px;font-size:13px}
@@ -336,10 +346,12 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
   .credit{display:none}
   .tlbox{grid-template-columns:70px minmax(0,1fr);border-radius:10px}
   .labs{gap:3px;padding:4px 4px 6px 6px}.labs button{font-size:11px;letter-spacing:.08em;padding:0 5px}
-  .h-ruler,.ruler,.pblk,.padd{height:28px}.padd{width:28px;font-size:16px}.pblk{padding:2px 6px}.pn{font-size:12px}.bn{font-size:9px;bottom:2px}
-  .h-drums,.h-chords,.h-vocal,.r-drums,.r-chords,.r-vocal{height:24px}
+  .h-ruler,.ruler,.pblk,.padd{height:22px}.padd{width:22px;font-size:14px}.pblk{padding:1px 5px;border-radius:5px}.pn{font-size:11px;line-height:1.1}.bn{font-size:8px;bottom:1px}
+  .h-drums,.h-chords,.h-vocal,.r-drums,.r-chords,.r-vocal{height:20px}
+  .labs button{font-size:10px}
   .scroller{padding:4px 0 6px}.track{gap:3px}
-  .cblk{font-size:12px;top:2px;bottom:2px;padding:0 4px;border-left-width:2px}
+  .cblk{font-size:11px;top:2px;bottom:2px;padding:0 4px;border-left-width:2px}
+  #ph .knob{top:-1px;width:16px;left:-7px;height:12px}
   .lower{min-height:0}
   /* chords: console at the left, detail view + palette at the right */
   #p-chords{display:grid;grid-template-columns:112px minmax(0,1fr);grid-template-rows:auto auto;gap:6px;align-items:start}
@@ -365,12 +377,12 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
   .dcons .fwrap{min-height:40px}
   .dpane .masterp{padding:8px 0;gap:8px;border-radius:12px}.dpane .masterp .fwrap{min-height:40px}.dpane .masterp .fader{width:34px}
   .allbtn{width:34px;height:34px;margin-bottom:14px}.allbtn svg{width:13px;height:13px}
-  .inst svg{max-height:calc(100vh - 180px)}
+  .inst svg{max-height:calc(100vh - 160px)}
   /* vocal */
   .vbar{gap:5px}.vbar select{max-width:140px;font-size:13px}.seg2{height:30px}.seg2 button{width:34px}
   .vroll{height:80px}
   .kbwrap{height:72px}.kb .w{font-size:9px;padding-bottom:3px}
-  .vsheet{min-height:150px}
+  .vpane{overflow:hidden}.vsheet{min-height:0;flex:1}
   /* popups */
   .mixer{max-height:calc(100vh - 56px);overflow:auto}.mixer .fader{height:110px}
   .pop{max-height:calc(100vh - 16px);overflow:auto}
@@ -474,12 +486,10 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
 <div class="pop" id="more" hidden role="dialog" aria-label="Mehr"><button class="chip" id="mNew">Neuer Song</button><button class="chip" id="mLat">Mikro-Latenz messen</button></div>
 <div class="shade" id="shade" hidden></div>
 <div class="sheet" id="start" hidden role="dialog" aria-label="Neuer Song">
-  <h2>Neuer Song</h2>
-  <div class="opts" id="sRoot"><em>Tonart</em></div>
-  <div class="opts" id="sMode"><em></em><button class="chip" data-m="0">Dur</button><button class="chip" data-m="1">Moll</button></div>
-  <div class="opts"><em>Tempo</em><button class="chip" id="sDown" aria-label="langsamer">−</button><span id="sBpm" style="font:600 26px var(--f-num);min-width:3ch;text-align:center">92</span><button class="chip" id="sUp" aria-label="schneller">+</button><button class="chip" id="sTap">Tap</button></div>
-  <div class="opts" id="sKind"><em>Aufbau</em><button class="chip" data-k="pop">Pop</button><button class="chip" data-k="ballade">Ballade</button><button class="chip" data-k="kurz">Kurz</button><button class="chip" data-k="leer">Leer</button></div>
-  <button class="go2" id="sGo">Los</button>
+  <h3>Neuer Song<span class="sp"></span><button class="okbtn" id="sGo" aria-label="Song anlegen" title="Song anlegen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m7.5 12.5 3 3 6-6.5"/></svg></button></h3>
+  <div class="srow"><select id="sKey" aria-label="Tonart"></select>
+    <span class="sbpm"><button class="chip" id="sDown" aria-label="langsamer">−</button><span id="sBpm">92</span><button class="chip" id="sUp" aria-label="schneller">+</button><button class="chip" id="sTap">Tap</button></span>
+    <select id="sKind" aria-label="Aufbau"><option value="pop">Aufbau: Pop</option><option value="ballade">Aufbau: Ballade</option><option value="kurz">Aufbau: Kurz</option><option value="leer">Aufbau: Leer</option></select></div>
 </div>
 <div class="sheet" id="editor" hidden role="dialog" aria-label="Akkord bearbeiten">
   <h3><span id="edName">C</span><small id="edNotes"></small><span class="sp"></span><button class="chip ib" id="edX" aria-label="Schließen" title="Schließen">✕</button></h3>
@@ -503,6 +513,11 @@ const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const mod=(a,n)=>((a%n)+n)%n,clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 const uid=()=>Math.random().toString(36).slice(2,9);
 let lastPD=0;addEventListener('pointerdown',()=>{lastPD=performance.now()},true);
+// any popup open and the tap lands outside it: close the popup(s), swallow the tap
+const POPS='#pmenu,#partPop,#bpmPop,#more,#mixer,#ctx,#palOv';let swallow=0;
+addEventListener('pointerdown',e=>{const open=[...document.querySelectorAll(POPS)].filter(p=>!p.hidden);if(!open.length||open.some(p=>p.contains(e.target)))return;
+  open.forEach(p=>{p.hidden=true});e.stopImmediatePropagation();e.preventDefault();swallow=performance.now()},true);
+['pointerup','click'].forEach(t=>addEventListener(t,e=>{if(swallow&&performance.now()-swallow<900){e.stopImmediatePropagation();e.preventDefault();if(t==='click')swallow=0}},true));
 function press(el,fn){el.addEventListener('pointerdown',e=>{if(e.button)return;e.preventDefault();fn(e)});el.addEventListener('click',e=>{if(e.detail===0&&performance.now()-lastPD>700)fn(e)})}
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200)}
 /* ================= music theory ================= */
@@ -975,12 +990,17 @@ press($('#partBtn'),()=>{if(!lp.hidden){lp.hidden=true;return}renderPartList();p
 function renderPartList(){
   const seen=new Set();
   lp.innerHTML=`<div class="plist">`+song.arr.map((id,i)=>{const g=song.segs[id],lk=seen.has(id);seen.add(id);
-    return `<div class="prow${i===st.sel?' sel':''}" data-i="${i}" style="--pc:var(--c-${g.type})"><span class="handle" aria-hidden="true">⋮⋮</span><span class="pnm">${g.name}${lk?' ↺':''}</span><small>${g.bars}</small>
+    return `<div class="prow${i===st.sel?' sel':''}" data-i="${i}" style="--pc:var(--c-${g.type})"><span class="handle" aria-hidden="true">⋮⋮</span><span class="pnm">${g.name}${lk?' ↺':''}</span>
+      <select data-s="bars" aria-label="Takte">${[4,8,12,16].map(n=>`<option value="${n}"${g.bars===n?' selected':''}>${n} T</option>`).join('')}</select>
+      <select data-s="groove" aria-label="Drums">${Object.entries(GROOVES).map(([k,v])=>`<option value="${k}"${g.groove===k?' selected':''}>${v.n}</option>`).join('')}</select>
+      <select data-s="trans" aria-label="Ende des Teils">${[['none','Ende: –'],['fill','Ende: Fill'],['build','Ende: Steigern'],['break','Ende: Break'],['pickup','Ende: V7'],['crash','Ende: Crash']].map(([k,l])=>`<option value="${k}"${g.trans===k?' selected':''}>${l}</option>`).join('')}</select>
       <button class="mini" data-a="copy" title="Duplizieren (Kopie)" aria-label="Duplizieren">⎘</button><button class="mini" data-a="link" title="Verknüpft duplizieren" aria-label="Verknüpft duplizieren">↺</button><button class="mini" data-a="del" title="Löschen" aria-label="Löschen">✕</button></div>`}).join('')+`</div>
     <div class="pmr"><span class="unit">Einfügen</span><select id="insSel" aria-label="Teil einfügen"><option value="">Teil wählen …</option>${Object.keys(TYPES).map(t=>`<option value="${t}">${nameFor(t)}</option>`).join('')}</select></div>`;
   lp.querySelector('#insSel').addEventListener('change',e=>{const t=e.target.value;if(!t)return;const g=newSeg(t,t==='intro'||t==='outro'||t==='pre'?4:8);g.name=nameFor(t);
     song.segs[g.id]=g;renameFirst(t);const at=st.sel+1;song.arr.splice(at,0,g.id);touch();renderTimeline();selectPart(at);showSel();renderPartList()});
   lp.querySelectorAll('.prow').forEach(row=>{const i=+row.dataset.i;
+    row.querySelectorAll('select[data-s]').forEach(sel=>{sel.addEventListener('pointerdown',e=>e.stopPropagation());sel.addEventListener('change',()=>{const g=segOf(i),k=sel.dataset.s;
+      if(k==='bars'){setBars(i,+sel.value);renderPartList();return}g[k]=sel.value;touch();renderChordsLane();drawDrumsLane();renderChordView()})});
     row.querySelectorAll('[data-a]').forEach(b=>{b.addEventListener('pointerdown',e=>e.stopPropagation());b.addEventListener('click',e=>{e.stopPropagation();const a=b.dataset.a;
       if(a==='del'){if(song.arr.length<2){toast('Der letzte Teil bleibt');return}if(!b.classList.contains('on')){b.classList.add('on','arm');b.textContent='Löschen?';return}
         stopTransport();const id=song.arr.splice(i,1)[0];if(!song.arr.includes(id))delete song.segs[id];st.sel=Math.min(st.sel>i?st.sel-1:st.sel,song.arr.length-1);st.head=partsList()[st.sel].start;touch();renderAll();renderPartList();return}
@@ -1000,14 +1020,10 @@ function renderPartList(){
 const start=$('#start');const ns={root:0,minor:false,bpm:92,kind:'pop'};
 function openStart(){ns.root=song.key.root;ns.minor=song.key.minor;ns.bpm=song.bpm;start.hidden=false;$('#shade').hidden=false;renderStart()}
 function renderStart(){
-  $('#sRoot').innerHTML=NN.map((n,i)=>`<button class="chip${i===ns.root?' on':''}" data-r="${i}">${n}</button>`).join('');
-  $('#sRoot').querySelectorAll('[data-r]').forEach(b=>press(b,()=>{ns.root=+b.dataset.r;renderStart()}));
-  $$('#sMode [data-m]').forEach(b=>b.classList.toggle('on',(b.dataset.m==='1')===ns.minor));
-  $$('#sKind [data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===ns.kind));
-  $('#sBpm').textContent=ns.bpm;
-}
-$$('#sMode [data-m]').forEach(b=>press(b,()=>{ns.minor=b.dataset.m==='1';renderStart()}));
-$$('#sKind [data-k]').forEach(b=>press(b,()=>{ns.kind=b.dataset.k;renderStart()}));
+  const k=$('#sKey');if(!k.options.length)k.innerHTML=['Dur','Moll'].map((m,mi)=>`<optgroup label="${m}">`+NN.map((n,i)=>`<option value="${i}:${mi}">${n}-${m}</option>`).join('')+'</optgroup>').join('');
+  k.value=ns.root+':'+(ns.minor?1:0);$('#sKind').value=ns.kind;$('#sBpm').textContent=ns.bpm}
+$('#sKey').addEventListener('change',e=>{const[r,m]=e.target.value.split(':').map(Number);ns.root=r;ns.minor=m===1});
+$('#sKind').addEventListener('change',e=>{ns.kind=e.target.value});
 press($('#sDown'),()=>{ns.bpm=Math.max(40,ns.bpm-1);renderStart()});press($('#sUp'),()=>{ns.bpm=Math.min(220,ns.bpm+1);renderStart()});
 press($('#sTap'),()=>tapTempo(v=>{ns.bpm=Math.max(40,Math.min(220,Math.round(v)));renderStart()}));
 press($('#sGo'),()=>{
@@ -1034,7 +1050,7 @@ function renderRuler(){
     for(let b=0;b<p.seg.bars;b++)h+=`<span class="bn" style="left:${bx(p.start+b*4)+3}px">${p.start/4+b+1}</span>`});
   h+=`<button class="padd" style="left:${bx(totalBeats())+4}px" aria-label="Teil hinzufügen">+</button>`;
   ruler.innerHTML=h;
-  ruler.querySelectorAll('.pblk').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.i;selectPart(i);openPartMenu(i,ruler.querySelector(`.pblk[data-i="${i}"]`))}));
+  ruler.querySelectorAll('.pblk').forEach(b=>press(b,()=>selectPart(+b.dataset.i)));
   press(ruler.querySelector('.padd'),()=>openAddMenu(ruler.querySelector('.padd')));
 }
 function renderTints(){const ps=partsList();
