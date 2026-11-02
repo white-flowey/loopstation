@@ -1960,15 +1960,20 @@ press($('#micBtn'),async()=>{
   st.rec=false;st.loop=true;cycleStart();startTransport('seg',true);$('#micBtn').classList.add('on');
   vrec.t0=timeAt(0);vrec.timer=setTimeout(()=>stopVocalRec(false),(timeAt(vrec.len)-ac.currentTime+.35)*1000);ui();
 });
+// stopped before the end of the part: the take loops to the end – whole bars, the bar you are in counts, up to 3/4 beat overshoot is forgiven (like the loopstation)
+function loopLenAt(e,len){if(e<=.25)return 0;return Math.min(len,Math.max(1,Math.ceil((e-.75)/4))*4)}
 function stopVocalRec(cancel){
-  if(!vrec)return;const r=vrec;vrec=null;clearTimeout(r.timer);try{r.proc.disconnect();mic.src.disconnect(r.proc)}catch(e){}
+  if(!vrec)return;const r=vrec,eB=ac&&st.running?beatAt(ac.currentTime):r.len;vrec=null;clearTimeout(r.timer);try{r.proc.disconnect();mic.src.disconnect(r.proc)}catch(e){}
   $('#micBtn').classList.remove('on');
   if(!cancel&&r.chunks.length&&r.frames.length){
     const sr=ac.sampleRate,len=Math.round(r.len*spb()*sr),out=ac.createBuffer(1,len,sr),o=out.getChannelData(0);
     r.chunks.forEach(c=>{const idx=Math.round((c.t-r.t0-r.lat)*sr);for(let i=0;i<c.d.length;i++){const j=idx+i;if(j>=0&&j<len)o[j]=c.d[i]}});
-    const mel=notesFromFrames(r.frames,r.len);
+    const LL=loopLenAt(eB,r.len);let frames=r.frames,looped=0;
+    if(LL&&LL<r.len){const n=Math.round(LL*spb()*sr);for(let at=n;at<len;at+=n)o.copyWithin(at,0,Math.min(n,len-at));
+      const base=r.frames.filter(f=>f.t<LL);frames=[];for(let k=0;k*LL<r.len;k++)base.forEach(f=>{const t=f.t+k*LL;if(t<r.len)frames.push({...f,t})});looped=Math.ceil(r.len/LL)}
+    r.frames=frames;const mel=notesFromFrames(r.frames,r.len);
     r.seg.takes.push(out);r.seg.takeFr=r.seg.takeFr||[];r.seg.takeFr.push(r.frames);r.seg.take=r.seg.takes.length-1;r.seg.melody=mel;r.seg.melSrc='voice';keepTakes(r.seg);
-    touch();toast(mel.length?`Take ${r.seg.takes.length}: ${mel.length} Töne erkannt`:`Take ${r.seg.takes.length} gespeichert – keine klare Melodie erkannt`);
+    touch();toast((mel.length?`Take ${r.seg.takes.length}: ${mel.length} Töne erkannt`:`Take ${r.seg.takes.length} gespeichert – keine klare Melodie erkannt`)+(looped?` · Loop ${LL/4} T ×${looped}`:''));
   }
   if(st.running&&st.mode==='seg')stopTransport();
   liveNotes=[];renderLabs();drawVocalLane();renderVocal();ui()}
@@ -2083,8 +2088,9 @@ function kbNotes(raw){const q=song.q?1/song.q:0,len=segOf(st.sel).bars*4;return 
 function kbLive(){const b=ac&&st.running?beatAt(ac.currentTime):0;return[...kbrec.notes,...[...kbrec.open].map(n=>({...n,d:Math.max(.05,b-n.t)}))]}
 function kbToggle(){ensureCtx();if(kbrec){kbFinish();return}const g=segOf(st.sel);kbrec={seg:g,len:g.bars*4,notes:[],open:new Set()};liveNotes=[];
   st.rec=false;st.loop=true;cycleStart();startTransport('seg',true);kbrec.timer=setTimeout(()=>kbFinish(),(timeAt(kbrec.len)-ac.currentTime+.1)*1000);ui()}
-function kbFinish(){const r=kbrec;if(!r)return;clearTimeout(r.timer);const raw=kbLive();kbrec=null;
-  if(raw.length){r.seg.kbRaw=raw.map(n=>({t:n.t,d:n.d,m:n.m}));r.seg.melSrc='kb';r.seg.melody=kbNotes(raw);touch();toast(`${raw.length} Töne aufgenommen`)}else toast('Nichts gespielt')
+function kbFinish(){const r=kbrec;if(!r)return;clearTimeout(r.timer);let raw=kbLive();const eB=ac&&st.running?beatAt(ac.currentTime):r.len;kbrec=null;
+  const LL=loopLenAt(eB,r.len);let looped=0;if(raw.length&&LL&&LL<r.len){const base=raw.filter(n=>n.t<LL);raw=[];for(let k=0;k*LL<r.len;k++)base.forEach(n=>{const t=n.t+k*LL;if(t<r.len)raw.push({...n,t,d:Math.min(n.d,LL)})});looped=Math.ceil(r.len/LL)}
+  if(raw.length){r.seg.kbRaw=raw.map(n=>({t:n.t,d:n.d,m:n.m}));r.seg.melSrc='kb';r.seg.melody=kbNotes(raw);touch();toast(`${looped?Math.round(raw.length/looped):raw.length} Töne aufgenommen`+(looped?` · Loop ${LL/4} T ×${looped}`:''))}else toast('Nichts gespielt')
   if(st.running&&st.mode==='seg')stopTransport();liveNotes=[];drawVocalLane();renderVocal();ui()}
 press($('#sheetBtn'),()=>{st.sheet=!st.sheet;saveSoon();renderVocal()});
 function renderVocal(){if(st.lane!=='vocal')return;$('#vpSel').value=song.vp;$$('.seg2 [data-vm]').forEach(b=>b.setAttribute('aria-checked',b.dataset.vm===song.vmode));
