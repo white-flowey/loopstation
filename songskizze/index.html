@@ -1460,7 +1460,7 @@ const shortName=g=>{const m=g.name.match(/^(Intro|Verse|Pre-Chorus|Chorus|Bridge
 function renderRuler(){
   const ps=partsList(),seen=new Set();let h='';
   ps.forEach(p=>{const lk=seen.has(p.seg.id);seen.add(p.seg.id);
-    h+=`<button class="pblk${p.i===st.sel?' sel':''}" data-i="${p.i}" style="left:${bx(p.start)}px;width:${bx(p.len)}px;--pc:var(--c-${p.seg.type})"><span class="pn" title="${p.seg.name}">${shortName(p.seg)}${lk?'↺':''}</span></button>`;
+    h+=`<button class="pblk${p.i===st.sel?' sel':''}" data-i="${p.i}" style="left:${bx(p.start)}px;width:${bx(p.len)}px;--pc:var(--c-${p.seg.type})"><span class="pn" title="${p.seg.name}">${p.seg.name}${lk?' ↺':''}</span></button>`;
     for(let b=1;b<p.seg.bars;b++)h+=`<span class="bn" style="left:${bx(p.start+b*4)+3}px">${p.start/4+b+1}</span>`});
   h+=`<button class="padd" style="left:${bx(totalBeats())+4}px" aria-label="Teil hinzufügen">+</button>`;
   ruler.innerHTML=h;
