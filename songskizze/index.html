@@ -304,7 +304,7 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
 .chip.ib.snd[aria-pressed="true"]{background:var(--raised);color:var(--fg)}.chip.ib.snd[aria-pressed="false"]{color:var(--dim)}
 #sheetBtn[aria-pressed="true"]{background:var(--fg);color:var(--bg)}#sheetBtn[aria-pressed="false"]{color:var(--faint)}
 .vroll{position:relative;height:210px;flex:none;background:#0e0f12;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.vroll canvas{display:block;height:100%}
+.vroll canvas{position:absolute;left:0;top:0;height:100%;display:block}
 #vPh{position:absolute;top:0;bottom:0;width:3px;margin-left:-1px;background:var(--fg);opacity:.5;pointer-events:none}
 #vPh.run{background:var(--play);opacity:.9}
 .vsheet{flex:1;min-height:200px;overflow-y:auto;background:#f4f1e8;border-radius:10px;padding:6px 8px;color:#111}
@@ -2245,7 +2245,7 @@ function renderAll(){if(typeof buildKit==='function'&&kitSvg.dataset.k!==song.ki
 let reT=0;const reflow=()=>{cancelAnimationFrame(reT);reT=requestAnimationFrame(()=>renderTimeline())};
 addEventListener('resize',reflow);addEventListener('orientationchange',()=>{reflow();setTimeout(reflow,350)});
 if(window.visualViewport)visualViewport.addEventListener('resize',reflow);
-if(window.ResizeObserver){const ro=new ResizeObserver(reflow);['#scroller','.dwrap','.vroll','#dKit'].forEach(q=>{const e=document.querySelector(q);if(e)ro.observe(e)})}
+if(window.ResizeObserver){const ro=new ResizeObserver(reflow);['#scroller','.dwrap','.vroll','#dKit','#vRoll','#dRoll'].forEach(q=>{const e=document.querySelector(q);if(e)ro.observe(e)})}
 addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&!e.altKey&&(e.code==='KeyZ'||e.code==='KeyY')&&!['TEXTAREA','INPUT'].includes(e.target.tagName)){e.preventDefault();(e.shiftKey||e.code==='KeyY')?redo():undo();return}
   if(e.code==='Escape'){closeCtx();palOv.hidden=true;dsel=null;showDSel();return}
   if(e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT'||e.target.tagName==='INPUT'||e.metaKey||e.ctrlKey||e.altKey)return;
