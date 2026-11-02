@@ -128,6 +128,7 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
 .credit{color:var(--faint);font-size:11px;letter-spacing:.04em}
 
 /* popovers */
+.pop{max-height:calc(100vh - 16px);max-height:calc(100dvh - 16px);overflow:auto;box-sizing:border-box}
 .pop{position:fixed;z-index:35;background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:10px;box-shadow:0 18px 44px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:8px}
 .pmr{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 .pmr b{font-size:17px;border-left:3px solid var(--pc);padding-left:7px;margin-right:4px}
@@ -153,6 +154,7 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
 .opts .chip{height:36px;text-transform:none;letter-spacing:.02em;font-size:15px}
 #start .go2{height:52px;border-radius:12px;background:var(--fg);color:var(--bg);font-weight:700;font-size:18px;letter-spacing:.08em;text-transform:uppercase}
 .shade{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45)}
+.mixer{max-height:calc(100vh - 16px);max-height:calc(100dvh - 16px)}
 .mixer{position:fixed;z-index:36;background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:12px;
   box-shadow:0 20px 50px rgba(0,0,0,.6);display:flex;gap:10px;max-width:calc(100vw - 24px);overflow-x:auto;box-sizing:border-box}
 .mch{width:64px;display:flex;flex-direction:column;align-items:center;gap:7px;flex:none}
@@ -1001,8 +1003,14 @@ press($('#playBtn'),togglePlay);press($('#loopBtn'),toggleLoop);press($('#recBtn
 $('#keySel').innerHTML=['Dur','Moll'].map((m,mi)=>`<optgroup label="${m}">`+NN.map((n,i)=>`<option value="${i}:${mi}">${n}-${m}</option>`).join('')+'</optgroup>').join('');
 $('#keySel').addEventListener('change',e=>{const[r,m]=e.target.value.split(':').map(Number);setKey(r,m===1)});
 const bpmPop=$('#bpmPop'),more=$('#more'),mixer=$('#mixer');
+// popups stay inside the window: below the anchor if there is room, else above it, else pinned to the bottom edge (scrolls inside)
+function fitY(el){const a=el._a;if(!a||el.hidden)return;const h=el.offsetHeight,H=innerHeight;let t=a.below;
+  if(t+h>H-8)t=a.above-h>=8?a.above-h:Math.max(8,H-h-8);el.style.top=t+'px'}
+const popRO=window.ResizeObserver?new ResizeObserver(es=>es.forEach(e=>fitY(e.target))):null;
+function anchorPop(el,below,above){el._a={below,above};if(popRO&&!el._ro){el._ro=1;popRO.observe(el)}fitY(el)}
+addEventListener('resize',()=>document.querySelectorAll('.pop,.mixer').forEach(fitY));
 function popUnder(el,anchor,alignRight){const r=anchor.getBoundingClientRect();el.hidden=false;const w=el.offsetWidth;
-  let x=alignRight?r.right-w:r.left;el.style.left=Math.max(8,Math.min(x,innerWidth-w-8))+'px';el.style.top=(r.bottom+6)+'px'}
+  let x=alignRight?r.right-w:r.left;el.style.left=Math.max(8,Math.min(x,innerWidth-w-8))+'px';anchorPop(el,r.bottom+6,r.top-6)}
 press($('#bpmBtn'),()=>{if(!bpmPop.hidden){bpmPop.hidden=true;return}popUnder(bpmPop,$('#bpmBtn'),true);$('#bpmIn').value=song.bpm});
 press($('#bDown'),()=>setBpm(song.bpm-1));press($('#bUp'),()=>setBpm(song.bpm+1));press($('#bTap'),()=>tapTempo(setBpm));
 $('#bpmIn').addEventListener('change',e=>setBpm(+e.target.value||song.bpm));$('#bpmIn').addEventListener('keydown',e=>{if(e.key==='Enter'){setBpm(+e.target.value||song.bpm);e.target.blur()}});
@@ -1120,7 +1128,7 @@ knob.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();t
 /* ---- part popup ---- */
 const pm=$('#pmenu');let pmI=-1,pmWhere='after';
 function placePop(el,anchor){const r=anchor.getBoundingClientRect();el.hidden=false;const w=el.offsetWidth;
-  el.style.left=Math.max(8,Math.min(r.left,innerWidth-w-8))+'px';el.style.top=(r.bottom+6)+'px'}
+  el.style.left=Math.max(8,Math.min(r.left,innerWidth-w-8))+'px';anchorPop(el,r.bottom+6,r.top-6)}
 function openPartMenu(i,anchor){pmI=i;const g=segOf(i);
   pm.innerHTML=`<div class="pmr"><b style="--pc:var(--c-${g.type})">${g.name}</b><span class="sp"></span>${[4,8,12,16].map(n=>`<button class="chip${g.bars===n?' on':''}" data-bars="${n}">${n}</button>`).join('')}<span class="unit">Takte</span></div>
    <div class="pmr"><button class="chip" data-act="copy">⎘ Kopie</button><button class="chip" data-act="link">↺ Link</button><span class="unit">nach</span>
@@ -1293,7 +1301,7 @@ function resyncLoop(){if(st.running&&st.mode==='reg'){if(curReg())startTransport
   area.addEventListener('pointermove',mv);area.addEventListener('pointerup',up);area.addEventListener('pointercancel',up)}));
 
 /* ---- context menus ---- */
-function placeAt(el,x,y){el.hidden=false;const w=el.offsetWidth,h=el.offsetHeight;el.style.left=Math.max(8,Math.min(x-20,innerWidth-w-8))+'px';el.style.top=(y+h+14>innerHeight?Math.max(8,y-h-10):y+12)+'px'}
+function placeAt(el,x,y){el.hidden=false;const w=el.offsetWidth;el.style.left=Math.max(8,Math.min(x-20,innerWidth-w-8))+'px';anchorPop(el,y+12,y-10)}
 function closeCtx(){ctx.hidden=true}
 const patChips=(cur,attr)=>PATS.map(p=>`<button class="chip${cur===p.id?' on':''}" ${attr}="${p.id}">${p.n}</button>`).join('');
 const esc=t=>String(t).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
