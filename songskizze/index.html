@@ -145,7 +145,7 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
 #expPop{width:min(380px,calc(100vw - 16px))}#expPop select{flex:1;min-width:0}
 .exgo{height:40px!important;background:var(--fg)!important;color:var(--bg)!important;font-size:14px!important;gap:8px}.exgo svg{width:16px;height:16px}.exgo:disabled{opacity:.6}
 .pop>.popx+*{padding-right:36px}
-.mixer{padding-top:44px!important}.mixer>.popx+*{padding-right:0}
+.mixer>.popx+*{padding-right:0}
 
 .sheet{position:fixed;left:50%;transform:translateX(-50%);z-index:40;width:min(700px,calc(100vw - 24px));box-sizing:border-box;background:var(--panel);border:1px solid var(--line2);border-radius:16px;
   padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:12px}
@@ -557,7 +557,7 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
     <select id="sKind" aria-label="Aufbau"><option value="pop">Aufbau: Pop</option><option value="ballade">Aufbau: Ballade</option><option value="kurz">Aufbau: Kurz</option><option value="leer">Aufbau: Leer</option></select></div>
 </div>
 <div class="sheet" id="editor" hidden role="dialog" aria-label="Akkord bearbeiten">
-  <h3><span id="edName">C</span><small id="edNotes"></small><span class="sp"></span><button class="chip ib" id="edX" aria-label="Schließen" title="Schließen">✕</button></h3>
+  <h3><span id="edName">C</span><small id="edNotes"></small></h3>
   <div class="msel ed"><label><span class="unit">Art</span><select id="edQual"></select></label><label><span class="unit">Lage</span><select id="edInv"></select></label><label><span class="unit">Bass</span><select id="edBass"></select></label></div>
 </div>
 <div class="pop" id="ctx" hidden role="dialog" aria-label="Akkord-Menü"></div>
@@ -1846,7 +1846,7 @@ const edSet=f=>{const c=song.palette[edI];if(!c)return;f(c);ensureCtx();const s=
 edQual.addEventListener('change',()=>edSet(c=>{c.q=edQual.value;if(c.inv!=='auto'&&+c.inv>=tones(c).length)c.inv='auto'}));
 edInv.addEventListener('change',()=>edSet(c=>{c.inv=edInv.value==='auto'?'auto':+edInv.value}));
 edBass.addEventListener('change',()=>edSet(c=>{c.bass=edBass.value===''?null:+edBass.value}));
-press($('#edX'),closeEditor);press($('#shade'),()=>{if(!$('#editor').hidden)closeEditor()});
+press($('#shade'),()=>{if(!$('#editor').hidden)closeEditor()});
 
 /* ---- drums + vocal lanes (one canvas per part) ---- */
 function partCanvases(row){const ps=partsList();let cvs=[...row.querySelectorAll('canvas')];
@@ -2252,7 +2252,7 @@ async function saveFile(file){ // iPhone/iPad: share sheet (→ In Dateien siche
 function addCloser(el,close){const put=()=>{if(!el.hidden&&!el.querySelector(':scope>.popx')){const b=document.createElement('button');b.className='popx';b.setAttribute('aria-label','Schließen');b.textContent='✕';
     b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();close()});b.addEventListener('click',e=>{if(e.detail===0)close()});el.prepend(b)}};
   new MutationObserver(put).observe(el,{childList:true,attributes:true,attributeFilter:['hidden']});put()}
-[pm,bpmPop,mixer,ctx,palOv,$('#expPop')].forEach(el=>addCloser(el,()=>{el.hidden=true}));
+
 
 /* ================= frame ================= */
 function ui(){$('#playBtn').classList.toggle('on',st.running);$('#playBtn').innerHTML=st.running?ICON_STOP:ICON_PLAY;$('#micBtn').classList.toggle('on',!!vrec||!!kbrec);undoUi();
