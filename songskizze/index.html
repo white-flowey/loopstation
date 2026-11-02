@@ -912,7 +912,7 @@ function compile(seg,prev,next){
     if(lastBar&&seg.trans==='break')p={kick:[0],crash:[0]};
     Object.entries(p).forEach(([s,steps])=>steps.forEach(x=>{const v=s==='snare'&&lastBar&&seg.trans==='build'?.35+x/24:drumAcc(s,x,steps);ev.push({t:b*4+x/4,k:'d',s,v})}));
   }
-  if(prev&&['fill','build','crash'].includes(prev.trans))ev.push({t:0,k:'d',s:'crash',v:1});
+  if(prev&&['fill','build','crash'].includes(prev.trans))ev.push({t:0,k:'d',s:'crash',v:1,tc:1}); // transition crash
   (seg.dtr||[]).forEach((tr,i)=>{if(!tr.on)return;tr.layers.forEach(l=>l.hits.forEach(h=>{const r=mod(Math.round(h.r*4)/4,l.len);for(let T=mod(l.start+r,l.len);T<L-1e-6;T+=l.len)ev.push({t:T,k:'d',s:h.s,v:h.v||1,tr:i})}))});
 
   if(seg.takes[seg.take])ev.push({t:0,k:'v',buf:seg.takes[seg.take]});
@@ -940,6 +940,7 @@ function tick(){
   st.schedBeat=b;
 }
 function fire(e,T){const t=timeAt(T);if(t<ac.currentTime-.01)return;
+  if(e.tc&&Math.abs(T-Math.max(0,st.playFrom))<1e-6)return; // no transition crash on the very first beat after Play
   if(e.bus==='chords'&&crec)return; // first take: only the pads sound
   if(e.k==='p')playPiano(e.m,t,e.d*spb(),e.v,e.bus);
   else if(e.k==='d')playDrum(e.s,t,e.v,e.tr!=null&&BUS.dtr?BUS.dtr[e.tr]:null,e.tr!=null);
