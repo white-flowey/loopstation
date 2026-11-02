@@ -54,6 +54,7 @@ select{height:34px;border-radius:8px;background:var(--raised) url("data:image/sv
 #bpmBtn{height:34px;border-radius:8px;background:var(--raised);padding:0 10px;font:600 15px var(--f-num);color:var(--fg)}
 #bpmBtn small{font:600 10px var(--f-ui);letter-spacing:.12em;color:var(--dim);margin-left:4px}
 #keySel{max-width:130px}
+#qSel{max-width:96px}
 .head>*{flex-shrink:0}.head>#partBtn{flex-shrink:1;min-width:64px}.head>.sp{flex-shrink:1;min-width:0}
 #undoBtn:disabled,#redoBtn:disabled{opacity:.55}
 
@@ -411,6 +412,7 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
   .head .chip,.head select,#bpmBtn,#partBtn,#clock{height:24px;font-size:12px}
   .head .chip.ib,.head .chip.go{width:26px;min-width:26px}
   #clock{font-size:13px}
+  #qSel{width:64px;padding:0 16px 0 6px;background-position:right 5px center}
   #keySel{width:66px;max-width:66px;padding:0 16px 0 6px;background-position:right 5px center;text-overflow:clip}
   #partBtn{max-width:100px}
   #bpmBtn small{display:none}
@@ -476,6 +478,7 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
     <select id="keySel" aria-label="Tonart"></select>
     <button id="bpmBtn" aria-haspopup="dialog"><span id="bpmVal">92</span><small>BPM</small></button>
     <button class="chip ib" id="clickBtn" aria-pressed="true" aria-label="Metronom" title="Metronom"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M7.5 2.5h5L16 17.5H4z"/><path d="M10 13 14.5 5"/><path d="M6.5 13.5h7"/></svg></button>
+    <select id="qSel" aria-label="Quantisierung (Akkorde, Drums, Melodie)" title="Quantisierung für alle Aufnahmen"><option value="0">Q frei</option><option value="4">Q1/1</option><option value="2">Q1/2</option><option value="1">Q1/4</option><option value="0.5">Q1/8</option><option value="0.25">Q1/16</option></select>
     <button class="chip ib" id="mixBtn" aria-label="Mixer" title="Mixer"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 3v14M10 3v14M15 3v14"/><rect x="3" y="11" width="4" height="3" rx="1" fill="var(--raised)"/><rect x="8" y="5" width="4" height="3" rx="1" fill="var(--raised)"/><rect x="13" y="9" width="4" height="3" rx="1" fill="var(--raised)"/></svg></button>
     <button class="chip ib" id="moreBtn" aria-label="Mehr" style="font-size:20px;letter-spacing:0">⋯</button>
   </header>
@@ -523,7 +526,6 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
         <button class="chip ib rec vrec" id="micBtn" aria-label="Aufnehmen (4 Schläge Einzähler)" title="Aufnehmen"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="6" fill="currentColor"/></svg><span></span></button>
         <div class="seg2" role="radiogroup" aria-label="Melodie aufzeichnen per"><button role="radio" data-vm="voice" aria-label="Melodie einsingen" title="Melodie einsingen"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="7" y="2.5" width="6" height="10" rx="3"/><path d="M4.5 9.5a5.5 5.5 0 0 0 11 0M10 15v2.5"/></svg></button><button role="radio" data-vm="kb" aria-label="Bildschirmklaviatur" title="Bildschirmklaviatur"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2" y="4" width="16" height="12" rx="1.5"/><path d="M6 4v12M10 4v12M14 4v12"/><path d="M4.6 4h2.8v7H4.6zM8.6 4h2.8v7H8.6zM12.6 4h2.8v7h-2.8z" fill="currentColor" stroke="none"/></svg></button></div>
         <select id="takeSel" aria-label="Take"></select>
-        <select id="vqSel" aria-label="Rhythmus-Quantisierung"><option value="0">Q frei</option><option value="1">Q1/4</option><option value="2">Q1/8</option><option value="4">Q1/16</option></select>
         <select id="vpSel" aria-label="Tonhöhen-Quantisierung"><option value="semi">Nächster Halbton</option><option value="scale">Nächster Ton der Tonart</option></select>
         <button class="chip ib snd" id="melOn" aria-pressed="true" aria-label="Melodie mitspielen" title="Melodie mitspielen"><svg class="on" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h3l4-3.5v11L6 12H3z" fill="currentColor"/><path d="M13 7.5a3.5 3.5 0 0 1 0 5M15.5 5a7 7 0 0 1 0 10"/></svg><svg class="off" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h3l4-3.5v11L6 12H3z" fill="currentColor"/><path d="M13.5 7.5l4 5M17.5 7.5l-4 5"/><path d="M2.5 2.5l15 15"/></svg></button>
         <span class="sp"></span>
@@ -1189,7 +1191,7 @@ function saveSoon(){clearTimeout(saveSoon.t);saveSoon.t=setTimeout(()=>{try{cons
 try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d&&d.song&&d.song.arr&&d.song.arr.length){song=d.song;Object.values(song.segs).forEach(g=>{g.takes=[];g.takeMel=[];g.takeFr=[];g.take=0;migrateSeg(g);if(g.swing==null)g.swing=false});st.head=d.head||0;st.loop=!!d.loop;
   if(d.mix)Object.keys(mix).forEach(k=>{if(d.mix[k]!=null)mix[k]=typeof mix[k]==='object'?{...mix[k],...d.mix[k]}:d.mix[k]});st.sel=Math.min(d.sel||0,song.arr.length-1);st.lane=['chords','drums','vocal'].includes(d.lane)?d.lane:'chords';if(d.click===false)st.click=false;if(d.sheet===false)st.sheet=false;if(d.kbLo>=24&&d.kbLo<=96&&![1,3,6,8,10].includes(d.kbLo%12))st.kbLo=d.kbLo;if([1,2,3].includes(d.cstep))st.cstep=d.cstep;if([4,2,1,.5].includes(d.cq))st.cq=d.cq}}catch(e){}
 let firstRun=false;if(!song){song=demo();firstRun=true}
-if(!song.palette)song.palette=makePalette();if(!song.kit)song.kit='synth';if(!song.vmode)song.vmode='voice';if(song.vq==null)song.vq=2;if(!song.vp)song.vp='semi';if(!song.dvol)song.dvol=[.8,.8];
+if(!song.palette)song.palette=makePalette();if(!song.kit)song.kit='synth';if(!song.vmode)song.vmode='voice';if(song.q==null)song.q=song.vq==null?.5:({0:0,1:1,2:.5,4:.25}[song.vq]??.5);if(!song.vp)song.vp='semi';if(!song.dvol)song.dvol=[.8,.8];
 function makePalette(){const k=song.key;return(k.minor?['i','iv','V','bVI','bVII']:['I','IV','V','vi']).map(r=>parseRoman(r,k))}
 
 /* ================= transport & scheduling ================= */
@@ -1243,7 +1245,7 @@ function compile(seg,prev,next){
   if(hasDrums){const p=tx==='fill'?{snare:[14,15],tom1:[8,9],tom2:[10,11],floor:[12,13]}:tx==='build'?{kick:[0,4,8,12],snare:[0,2,4,6,8,9,10,11,12,13,14,15]}:tx==='break'?{kick:[0],crash:[0]}:null;
     if(p)Object.entries(p).forEach(([s,steps])=>steps.forEach(x=>{const v=s==='snare'&&tx==='build'?.35+x/24:drumAcc(s,x,steps);ev.push({t:last*4+x/4,k:'d',s,v})}))}
   if(prev&&['fill','build','crash'].includes(prev.trans))ev.push({t:0,k:'d',s:'crash',v:1,tc:1}); // transition crash
-  (seg.dtr||[]).forEach((tr,i)=>{if(!tr.on)return;tr.layers.forEach(l=>l.hits.forEach(h=>{const r=mod(Math.round(h.r*4)/4,l.len);for(let T=mod(l.start+r,l.len);T<L-1e-6;T+=l.len){if(l.gv&&muteFrom!=null&&T>=muteFrom-1e-6)continue;ev.push({t:T,k:'d',s:h.s,v:h.v||1,tr:i,gv:l.gv})}}))});
+  (seg.dtr||[]).forEach((tr,i)=>{if(!tr.on)return;tr.layers.forEach(l=>l.hits.forEach(h=>{const gq=l.gv?0:song.q,r=gq?mod(Math.round(h.r/gq)*gq,l.len):mod(h.r,l.len);for(let T=mod(l.start+r,l.len);T<L-1e-6;T+=l.len){if(l.gv&&muteFrom!=null&&T>=muteFrom-1e-6)continue;ev.push({t:T,k:'d',s:h.s,v:h.v||1,tr:i,gv:l.gv})}}))});
 
   if(seg.takes[seg.take])ev.push({t:0,k:'v',buf:seg.takes[seg.take]});
   return ev.sort((a,b)=>a.t-b.t);
@@ -1439,7 +1441,7 @@ press($('#sGo'),()=>{
   stopTransport();const prev=song;song={key:{root:ns.root,minor:ns.minor},bpm:ns.bpm};
   if(ns.kind==='leer'){const g=newSeg('verse',8);g.groove='none';song={key:song.key,bpm:song.bpm,segs:{[g.id]:g},arr:[g.id]}}
   else song=template(ns.kind);
-  song.key={root:ns.root,minor:ns.minor};song.bpm=ns.bpm;song.palette=makePalette();song.kit=prev.kit||'synth';song.vmode=prev.vmode||'voice';song.vq=prev.vq==null?2:prev.vq;song.vp=prev.vp||'semi';song.dvol=prev.dvol||[.8,.8];
+  song.key={root:ns.root,minor:ns.minor};song.bpm=ns.bpm;song.palette=makePalette();song.kit=prev.kit||'synth';song.vmode=prev.vmode||'voice';song.q=prev.q==null?.5:prev.q;song.vp=prev.vp||'semi';song.dvol=prev.dvol||[.8,.8];
   Object.values(song.segs).forEach(syncGroove);st.sel=0;st.head=0;st.cursor=null;start.hidden=true;$('#shade').hidden=true;touch();renderAll();
   toast(ns.kind==='leer'?'Leerer Song: Akkorde würfeln oder setzen':'Song angelegt – Akkorde gewürfelt');
 });
@@ -1573,7 +1575,7 @@ const snap=()=>JSON.stringify(song,(k,v)=>k==='takes'?(Array.isArray(v)?v.length
 const TS={}; // seg id → {takes,takeFr}: audio of every take, so undo/redo can bring takes back
 const keepTakes=g=>{TS[g.id]={takes:g.takes.slice(),takeFr:(g.takeFr||[]).slice()}};
 function commit(){const s=snap();if(s===H.last)return;if(H.last!=null){H.u.push(H.last);if(H.u.length>100)H.u.shift()}H.r=[];H.last=s;undoUi()}
-function restore(s){const old=song.segs,keep={vmode:song.vmode,vq:song.vq,vp:song.vp};song=JSON.parse(s);Object.assign(song,keep);Object.values(song.segs).forEach(g=>{const o=old[g.id],n=typeof g.takes==='number'?g.takes:0,T=TS[g.id]||(o?{takes:o.takes,takeFr:o.takeFr||[]}:{takes:[],takeFr:[]});g.takes=T.takes.slice(0,n);g.takeFr=T.takeFr.slice(0,n);g.takeMel=[];g.take=Math.max(0,Math.min(g.take||0,g.takes.length-1));migrateSeg(g)});
+function restore(s){const old=song.segs,keep={vmode:song.vmode,q:song.q,vp:song.vp};song=JSON.parse(s);Object.assign(song,keep);Object.values(song.segs).forEach(g=>{const o=old[g.id],n=typeof g.takes==='number'?g.takes:0,T=TS[g.id]||(o?{takes:o.takes,takeFr:o.takeFr||[]}:{takes:[],takeFr:[]});g.takes=T.takes.slice(0,n);g.takeFr=T.takeFr.slice(0,n);g.takeMel=[];g.take=Math.max(0,Math.min(g.take||0,g.takes.length-1));migrateSeg(g)});
   H.last=s;ver++;saveSoon();st.sel=Math.min(st.sel,song.arr.length-1);if(!curReg())st.regId=null;if(st.running){if(st.mode==='reg'&&!curReg())stopTransport();else TL=timeline()}renderAll();undoUi()}
 function undo(){if(kbrec){const r=kbrec;kbrec=null;clearTimeout(r.timer);liveNotes=[];if(st.running)stopTransport();toast('Aufnahme verworfen');drawVocalLane();renderVocal();ui();return}
   if(vrec){stopVocalRec(true);if(st.running)stopTransport();toast('Aufnahme verworfen');return}
@@ -1651,7 +1653,7 @@ function resyncLoop(){if(st.running&&st.mode==='reg'){if(curReg())startTransport
 
 // blocks + roll: tap = chord / loop / empty menu, drag = rectangle selection
 [dBlocks,dRoll].forEach(area=>area.addEventListener('pointerdown',e=>{if(e.button)return;e.preventDefault();closeCtx();const g=segOf(st.sel),PL=g.bars*4,x0=beatX(e,dBlocks),y0=e.clientY;
-  try{area.setPointerCapture(e.pointerId)}catch(_){}let moved=false;const q=Math.min(1,st.cq);
+  try{area.setPointerCapture(e.pointerId)}catch(_){}let moved=false;const q=Math.min(1,song.q||.25);
   const mv=ev=>{const x=beatX(ev,dBlocks);if(!moved&&Math.hypot((x-x0)*DPX/4,ev.clientY-y0)<6)return;moved=true;
     const a=clamp(Math.floor(Math.min(x,x0)/q)*q,0,PL),b=clamp(Math.ceil(Math.max(x,x0)/q)*q,0,PL);dsel={a,b:Math.max(b,a+q)};showDSel()};
   const up=ev=>{area.removeEventListener('pointermove',mv);area.removeEventListener('pointerup',up);area.removeEventListener('pointercancel',up);
@@ -1764,7 +1766,7 @@ function renderPalOv(){
 let liveRh=null;
 function playChordLive(c){const rh=voice(c,liveRh);liveRh=rh;const t=ac.currentTime+.005;const ss=[...rh,bassOf(c)].map(m=>playPiano(m,t,null,.55,'chords'));return()=>{const at=ac.currentTime;ss.forEach(s=>s(at))}}
 const QOPT=[[4,'Ganze Takte'],[2,'Halbe Takte'],[1,'Viertel'],[.5,'Achtel']];
-function renderQ(){const s=$('#cqSel');if(!s.options.length){s.innerHTML=QOPT.map(([v,l])=>`<option value="${v}">${l}</option>`).join('');s.addEventListener('change',()=>{st.cq=+s.value;saveSoon()})}s.value=String(st.cq)}
+function renderQ(){const q=$('#qSel');if(q)q.value=String(song.q)}
 
 /* ---- chord channel: Rec → Play → Overdub → Play, like the loopstation ---- */
 let crec=null; // first take: {seg,part,start (rel. to part),abs0,max,ev}
@@ -1791,7 +1793,7 @@ function finishFirstTake(loop,eForce){const R=crec;crec=null;if(!R)return;const 
   if(loop&&st.running)switchToRegionLoop(r,R.part);
   toast(`Loop: ${fmtBars(loopLen)}${r.len>loopLen?' · läuft bis Takt '+(R.part.start+r.start+r.len)/4:''}`);renderChordView();renderChordsLane();ui()}
 function switchToRegionLoop(r,part){const off=part.start+r.start;st.anchorBeat-=off;st.schedBeat-=off;st.playFrom=-1e9;st.mode='reg';st.regId=r.id;TL=timeline();ui()}
-function recLive(c,e){if(st.lane!=='chords'||!st.running)return false;const p=posNow(evLag(e));if(!p||p.cin)return !!(crec||st.rec);const q=st.cq;
+function recLive(c,e){if(st.lane!=='chords'||!st.running)return false;const p=posNow(evLag(e));if(!p||p.cin)return !!(crec||st.rec);const q=song.q||.125;
   if(crec){const rel=Math.max(0,Math.round((p.abs-crec.abs0)/q)*q);if(rel>=crec.max)return true;crec.ev=crec.ev.filter(x=>Math.abs(x.t-rel)>EPS);crec.ev.push({t:rel,c:cloneChord(c)});renderChordView();return true}
   if(st.rec&&st.mode==='reg'){const r=curReg();if(!r)return false;const L=regL(r),rel=mod(Math.round(Math.max(0,p.rpos)/q)*q,L);setChordRel(r,rel,c);
     if(st.rmode==='rec')st.rmode='dub';touch();renderChordView();renderChordsLane();return true}
@@ -1802,7 +1804,7 @@ function endChordRec(){if(crec)finishFirstTake(false);else if(st.rec&&st.mode===
 const RICON='<svg viewBox="0 0 76 30"><path d="M2 3v24l20-12z" fill="currentColor"/><path d="M32 28 40 2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="60" cy="15" r="10" fill="currentColor"/></svg>';
 const SICON='<svg viewBox="0 0 20 20"><rect x="4" y="4" width="12" height="12" rx="1.5" fill="currentColor"/></svg>',PICON='<svg viewBox="0 0 20 20"><path d="M5 3.5v13l11-6.5z" fill="currentColor"/></svg>';
 function hold(el,ms,fn){let t=0;const clr=()=>{clearTimeout(t);t=0};el.addEventListener('pointerdown',e=>{if(e.button)return;clr();t=setTimeout(()=>{t=0;fn()},ms)});['pointerup','pointercancel','pointerleave'].forEach(n=>el.addEventListener(n,clr))}
-$('#chCons').innerHTML=`<select class="kitsel" id="cqSel" aria-label="Raster"></select><div class="ch"><div class="fwrap"><div class="fader" id="chFader"></div></div>
+$('#chCons').innerHTML=`<div class="ch"><div class="fwrap"><div class="fader" id="chFader"></div></div>
   <button class="stopbtn" id="chStop" aria-label="Stopp (halten: Loop löschen)">${SICON}</button>
   <button class="ring" id="chRing" aria-label="Akkorde: Aufnahme / Wiedergabe / Overdub (halten: Undo)"><canvas></canvas><span class="face">${RICON}</span></button>
   <span class="cname">AKK</span><span class="clen" id="chLen"></span></div>`;
@@ -1894,7 +1896,7 @@ function feed(A,data){const k=Math.floor(data.length/A.f);if(A.n+k>A.buf.length)
   const out=[];while(A.pos+A.Y.W+A.Y.tMax<A.n){const r=yinAt(A.buf,A.pos,A.Y);r.at=(A.pos+A.Y.W/2)*A.f/A.sr0;out.push(r);A.pos+=A.Y.hop}return out}
 function scalePcs(){const r=song.key.root;return(song.key.minor?[0,2,3,5,7,8,10]:MAJ).map(i=>mod(r+i,12))}
 function notesFromFrames(fr,len){
-  if(!fr||!fr.length)return[];const q=+song.vq,pm=song.vp;let maxR=0;fr.forEach(f=>{maxR=Math.max(maxR,f.rms)});const gate=Math.max(.008,maxR*.14);
+  if(!fr||!fr.length)return[];const q=song.q?1/song.q:0,pm=song.vp;let maxR=0;fr.forEach(f=>{maxR=Math.max(maxR,f.rms)});const gate=Math.max(.008,maxR*.14);
   const v=fr.map(f=>f.ok&&f.m!=null&&f.rms>=gate),mm=fr.map((f,i)=>{if(!v[i])return null;const w=[];for(let k=i-2;k<=i+2;k++)if(v[k])w.push(fr[k].m);w.sort((a,b)=>a-b);return w[w.length>>1]});
   const hopB=.01/spb(),segs=[];let cur=null,dev=[],gap=0;
   const close=()=>{if(cur&&cur.ms.length>=6)segs.push({t0:cur.t0,t1:cur.t1,m:cur.sum/cur.ms.length});cur=null;dev=[]};
@@ -1971,7 +1973,7 @@ function stopVocalRec(cancel){
   if(st.running&&st.mode==='seg')stopTransport();
   liveNotes=[];renderLabs();drawVocalLane();renderVocal();ui()}
 function requantize(){const g=segOf(st.sel),fr=g.takeFr&&g.takeFr[g.take];if(g.melSrc==='kb'&&g.kbRaw){g.melody=kbNotes(g.kbRaw);touch();drawVocalLane();renderVocal();return}if(fr){g.melody=notesFromFrames(fr,g.bars*4);touch()}else toast('Quantisierung gilt für neu eingesungene Takes');drawVocalLane();renderVocal()}
-$('#vqSel').addEventListener('change',e=>{song.vq=+e.target.value;requantize()});
+$('#qSel').addEventListener('change',e=>{song.q=+e.target.value;saveSoon();ver++;requantize();drawDrumsLane()});
 $('#vpSel').addEventListener('change',e=>{song.vp=e.target.value;requantize()});
 $('#takeSel').addEventListener('change',e=>{const g=segOf(st.sel);g.take=+e.target.value;const fr=g.takeFr&&g.takeFr[g.take];if(fr)g.melody=notesFromFrames(fr,g.bars*4);touch();renderLabs();drawVocalLane();renderVocal()});
 let clrArm=0;press($('#clrVoc'),()=>{const g=segOf(st.sel);if(!g.takes.length&&!g.melody.length)return;
@@ -2076,7 +2078,7 @@ kbEl.addEventListener('pointermove',e=>{const cur=kbHeld.get(e.pointerId);if(!cu
 const kbEnd=e=>{const cur=kbHeld.get(e.pointerId);if(!cur)return;cur.k.classList.remove('on');kbUp(cur.h);kbHeld.delete(e.pointerId)};
 ['pointerup','pointercancel'].forEach(t=>kbEl.addEventListener(t,kbEnd));
 press($('#kbDown'),()=>kbShift(-12));press($('#kbUp'),()=>kbShift(12));press($('#kbL'),()=>kbShift(-1));press($('#kbR'),()=>kbShift(1));
-function kbNotes(raw){const q=+song.vq,len=segOf(st.sel).bars*4;return raw.map(n=>{let t=n.t,e=n.t+n.d;if(q){t=Math.round(t*q)/q;e=Math.round(e*q)/q;if(e<=t)e=t+1/q}
+function kbNotes(raw){const q=song.q?1/song.q:0,len=segOf(st.sel).bars*4;return raw.map(n=>{let t=n.t,e=n.t+n.d;if(q){t=Math.round(t*q)/q;e=Math.round(e*q)/q;if(e<=t)e=t+1/q}
   t=Math.max(0,t);e=Math.min(len,e);return{t,d:e-t,m:n.m,v:.72}}).filter(n=>n.d>0&&n.t<len).sort((a,b)=>a.t-b.t)}
 function kbLive(){const b=ac&&st.running?beatAt(ac.currentTime):0;return[...kbrec.notes,...[...kbrec.open].map(n=>({...n,d:Math.max(.05,b-n.t)}))]}
 function kbToggle(){ensureCtx();if(kbrec){kbFinish();return}const g=segOf(st.sel);kbrec={seg:g,len:g.bars*4,notes:[],open:new Set()};liveNotes=[];
@@ -2085,7 +2087,7 @@ function kbFinish(){const r=kbrec;if(!r)return;clearTimeout(r.timer);const raw=k
   if(raw.length){r.seg.kbRaw=raw.map(n=>({t:n.t,d:n.d,m:n.m}));r.seg.melSrc='kb';r.seg.melody=kbNotes(raw);touch();toast(`${raw.length} Töne aufgenommen`)}else toast('Nichts gespielt')
   if(st.running&&st.mode==='seg')stopTransport();liveNotes=[];drawVocalLane();renderVocal();ui()}
 press($('#sheetBtn'),()=>{st.sheet=!st.sheet;saveSoon();renderVocal()});
-function renderVocal(){if(st.lane!=='vocal')return;$('#vqSel').value=String(song.vq);$('#vpSel').value=song.vp;$$('.seg2 [data-vm]').forEach(b=>b.setAttribute('aria-checked',b.dataset.vm===song.vmode));
+function renderVocal(){if(st.lane!=='vocal')return;$('#vpSel').value=song.vp;$$('.seg2 [data-vm]').forEach(b=>b.setAttribute('aria-checked',b.dataset.vm===song.vmode));
   const kbm=song.vmode==='kb';$('#kbWrap').hidden=!kbm;$('#vpSel').hidden=kbm;$('#takeSel').hidden=kbm;$('#vSheet').hidden=!st.sheet;$('#sheetBtn').setAttribute('aria-pressed',st.sheet);if(kbm)renderKb();renderTakeSel();drawVRoll();try{renderSheet()}catch(e){console.warn(e);$('#vSheet').textContent='Notensatz: '+e.message}}
 
 
