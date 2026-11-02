@@ -448,6 +448,7 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
 <div class="app">
   <header class="head">
     <button class="chip go" id="playBtn" aria-label="Play / Stopp" title="Play / Stopp (Leertaste)"></button>
+    <button class="chip ib" id="homeBtn" aria-label="Zum Anfang" title="Zum Songanfang (im Teil-Vollbild: zum Teilanfang)"><svg viewBox="0 0 20 20"><rect x="4" y="4.5" width="2.2" height="11" rx="1" fill="currentColor"/><path d="M16 4.5v11L7.5 10z" fill="currentColor"/></svg></button>
     <button class="chip ib" id="loopBtn" aria-pressed="false" aria-label="Cycle" title="Cycle: gewählten Teil loopen (C)"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V8a3 3 0 0 1 3-3h9"/><path d="m13 2 3 3-3 3"/><path d="M16 11v1a3 3 0 0 1-3 3H4"/><path d="m7 18-3-3 3-3"/></svg></button>
     <button class="chip ib rec" id="recBtn" aria-label="Aufnahme" title="Aufnahme in die gewählte Spur (R)"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="6" fill="currentColor"/></svg></button>
     <button class="chip ib" id="maxBtn" aria-pressed="false" aria-label="Gewählten Teil maximieren" title="Gewählten Teil maximieren"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg></button>
@@ -995,9 +996,12 @@ function toggleRec(){
   if(st.lane==='chords'){ringPress();return}
   dRingPress(DR.i>=0?DR.i:dTr(0).layers.length&&!dTr(1).layers.length?1:0);
 }
+// |< : song start, or the start of the selected part while it is maximised
+function jumpHome(){const t=st.max?partsList()[st.sel].start:0;st.head=t;const q=partAt(t);if(q.i!==st.sel)selectPart(q.i,true);placeHead();showSel();renderChordView();
+  if(st.running){if(st.mode==='song')startTransport('song',false);else startTransport(st.mode,false)}}
 function headToStart(){const p=partAt(st.head);st.head=st.head>p.start?p.start:0;const q=partAt(st.head);if(q.i!==st.sel)selectPart(q.i,true);placeHead();showSel();
   if(st.running&&st.mode==='song')startTransport('song',false)}
-press($('#playBtn'),togglePlay);press($('#loopBtn'),toggleLoop);press($('#recBtn'),toggleRec);
+press($('#playBtn'),togglePlay);press($('#homeBtn'),()=>{ensureCtx();jumpHome()});press($('#loopBtn'),toggleLoop);press($('#recBtn'),toggleRec);
 
 /* ================= header: key, tempo, metronome, mixer, ⋯ ================= */
 $('#keySel').innerHTML=['Dur','Moll'].map((m,mi)=>`<optgroup label="${m}">`+NN.map((n,i)=>`<option value="${i}:${mi}">${n}-${m}</option>`).join('')+'</optgroup>').join('');
@@ -1576,8 +1580,12 @@ async function measureLatency(){const sr=ac.sampleRate,proc=ac.createScriptProce
 async function calibrate(force){if(micLat!=null&&!force)return;toast('Mikro-Latenz wird gemessen … bitte kurz still sein');const L=await measureLatency();
   if(L!=null){micLat=L;toast(`Mikro-Latenz: ${Math.round(L*1000)} ms`)}else{micLat=latFallback();toast('Latenz nicht messbar (Kopfhörer?) – Standardwert genutzt. Neu messen unter ⋯')}
   try{localStorage.setItem(LATKEY,String(micLat))}catch(e){}}
-async function getMic(){if(mic)return true;try{const s=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});mic={stream:s,src:ac.createMediaStreamSource(s)};return true}
-  catch(e){toast('Kein Mikrofon-Zugriff. Auf einer eigenen Webadresse (z. B. GitHub Pages) funktioniert es.');return false}}
+async function getMic(){if(mic&&mic.stream.getAudioTracks().some(t=>t.readyState==='live'))return true;mic=null;
+  try{if(navigator.audioSession)navigator.audioSession.type='play-and-record'}catch(e){}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast('Dieser Browser erlaubt hier keine Mikrofon-Aufnahme.');return false}
+  try{const s=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});mic={stream:s,src:ac.createMediaStreamSource(s)};return true}
+  catch(e){const n=e&&e.name;toast(n==='NotAllowedError'||n==='SecurityError'?'Mikrofon nicht erlaubt. iPhone: Einstellungen → Apps → Safari → Mikrofon auf „Fragen“ oder „Erlauben“, dann die App neu öffnen.'
+    :n==='NotFoundError'?'Kein Mikrofon gefunden.':n==='NotReadableError'?'Das Mikrofon wird gerade von einer anderen App benutzt.':'Kein Mikrofon-Zugriff ('+(n||'unbekannt')+').');return false}}
 
 /* ---- vocal recording (microphone): 4 beats count-in, live pitch while singing ---- */
 let mic=null,vrec=null,liveNotes=[];
