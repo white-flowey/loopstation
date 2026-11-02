@@ -35,7 +35,7 @@ button:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px sol
 .chip[aria-pressed="true"],.chip.on{color:var(--bg);background:var(--fg)}
 .chip.rec{color:var(--rec)}.chip.rec.on{background:var(--rec);color:var(--bg)}
 .chip.go{min-width:52px;font-size:16px}.chip.go.on{background:var(--play);color:var(--bg)}
-select{height:34px;border-radius:8px;background:var(--raised);border:0;color:var(--fg);font:600 15px var(--f-ui);letter-spacing:.03em;padding:0 6px}
+select{height:34px;border-radius:8px;background:var(--raised) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%237f8791' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 7px center/10px 6px;border:0;color:var(--fg);font:600 15px var(--f-ui);letter-spacing:.03em;padding:0 22px 0 8px;-webkit-appearance:none;appearance:none;line-height:normal}
 .unit{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
 .sp{flex:1}
 
@@ -387,6 +387,45 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
   .mixer{max-height:calc(100vh - 56px);overflow:auto}.mixer .fader{height:110px}
   .pop{max-height:calc(100vh - 16px);overflow:auto}
   #editor{max-height:calc(100vh - 20px);overflow:auto;padding:12px}
+}
+
+/* phone landscape, second pass: Safari's bar and the home indicator leave ~310 px – sizes follow the space that is really there */
+@media (orientation:landscape) and (max-height:500px){
+  html,body{height:100%;height:100dvh}
+  body{padding-top:calc(3px + env(safe-area-inset-top,0px));padding-bottom:calc(2px + env(safe-area-inset-bottom,0px))}
+  .app{gap:4px}
+  .head{padding:3px 5px}
+  .head .chip,.head select,#bpmBtn,#partBtn,#clock{height:24px;font-size:12px}
+  .head .chip.ib,.head .chip.go{width:26px;min-width:26px}
+  #clock{font-size:13px}
+  .scroller{padding:3px 0 4px}.labs{padding:3px 4px 4px 6px;gap:2px}.track{gap:2px}
+  .h-ruler,.ruler,.pblk,.padd{height:20px}.padd{width:20px}.pn{font-size:10px}.bn{font-size:8px}
+  .h-drums,.h-chords,.h-vocal,.r-drums,.r-chords,.r-vocal{height:18px}
+  .labs button{font-size:9.5px;letter-spacing:.06em}
+  .cblk{font-size:10px;top:1px;bottom:1px}
+  .lower{display:flex;flex-direction:column}.lower>.pane{flex:1;min-height:0}
+  /* chords */
+  #p-chords{gap:5px;grid-template-rows:auto minmax(0,1fr)}
+  #p-chords .dview{padding:4px 5px;gap:2px}
+  .druler{height:17px}.dbn{top:3px;font-size:9px}.rband .rl{font-size:9px}
+  .dblocks{height:32px}.dch{top:3px;bottom:3px}.dch b{font-size:13px}.dch small{display:none}
+  .droll{height:30px}#dSel{top:19px}
+  .ptile{min-width:56px;height:42px;padding:0 8px}.ptile b{font-size:16px}.ptile i{font-size:9px}.ptile.add{min-width:40px;font-size:20px}.ptiles{gap:5px}
+  #chCons{padding:5px;gap:5px}
+  .kitsel,select.kitsel{height:24px;font-size:12px}
+  .ch{gap:4px;padding-bottom:12px}.ch .stopbtn{width:26px;height:26px}.stopbtn svg{width:10px;height:10px}
+  .ch .ring{width:56px!important;max-width:56px!important}
+  /* drums: the kit takes whatever height is left */
+  .dpane{height:100%}.dcons{padding:5px;row-gap:5px}
+  .inst{height:100%;min-height:0;overflow:hidden}.inst svg{height:100%;width:100%;max-height:none}
+  .allbtn{width:30px;height:30px;margin-bottom:12px}
+  /* vocal: bar, roll and keyboard share the rest */
+  .vpane{gap:4px}.vbar{gap:4px}.vbar .chip.ib{width:28px;height:26px}.vbar select{height:26px;font-size:12px}.seg2{height:26px}.seg2 button{width:30px}.seg2 button svg{width:15px;height:15px}
+  .vroll{height:auto;flex:1 1 60px;min-height:44px}
+  .kbwrap{height:auto;flex:1 1 64px;min-height:48px;max-height:84px}
+  .kbnav{gap:4px}.kbnav .chip.ib{width:26px;font-size:14px}
+  .vsheet{flex:2 1 0}
+  .vpane:has(.vsheet[hidden]) .vroll{flex-grow:2}
 }
 /* phone held upright: ask to rotate */
 #rotate{display:none}
