@@ -324,10 +324,13 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
 /* part list popup */
 #partPop{width:min(640px,calc(100vw - 16px));max-height:min(70vh,520px)}
 .plist{display:flex;flex-direction:column;gap:4px;overflow-y:auto;min-height:0;max-height:min(56vh,420px)}
-.prow{display:flex;align-items:center;gap:6px;height:40px;border-radius:8px;background:var(--raised);padding:0 6px 0 4px;border-left:3px solid var(--pc);touch-action:none;cursor:pointer;flex:none}
+.prow{display:flex;align-items:center;gap:6px;height:40px;border-radius:8px;background:var(--raised);padding:0 6px 0 4px;border-left:3px solid var(--pc);touch-action:pan-y;cursor:pointer;flex:none}
+.prow .pnm{touch-action:none;cursor:grab;padding:0 4px;align-self:stretch;display:flex;align-items:center}
+.padd2{justify-content:center;border-left:0;background:none;border:1px dashed var(--line2);color:var(--dim);font-size:20px;width:100%}
+#insPop{width:min(560px,calc(100vw - 16px));z-index:37;box-shadow:0 18px 60px rgba(0,0,0,.8)}.insrow select{flex:1;min-width:0}.okbtn.sm{width:36px;height:36px;margin:-4px -2px -4px 0}.okbtn.sm svg{width:32px;height:32px}
 .prow.sel{background:var(--raised2);box-shadow:inset 0 0 0 1px var(--fg)}
 .prow.drag{z-index:2;box-shadow:0 8px 22px rgba(0,0,0,.6);position:relative;opacity:.95}
-.prow select{height:28px;font-size:13px;padding:0 4px;max-width:140px}
+.prow select{height:28px;font-size:13px;padding:0 22px 0 7px;background-position:right 7px center;max-width:150px;flex:none}
 .prow .pnm{flex:1;min-width:60px;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .prow small{font:600 11px var(--f-num);color:var(--dim)}
 .prow .mini{height:28px;min-width:28px}
@@ -537,6 +540,7 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
 
 <div class="pop" id="pmenu" hidden role="dialog" aria-label="Songteil"></div>
 <div class="pop" id="partPop" hidden role="dialog" aria-label="Songteile"></div>
+<div class="pop" id="insPop" hidden role="dialog" aria-label="Teil einfügen"></div>
 <div class="pop" id="bpmPop" hidden role="dialog" aria-label="Tempo"><div class="pmr"><button class="chip" id="bDown" aria-label="langsamer">−</button><input class="bpmin" id="bpmIn" type="number" inputmode="numeric" min="40" max="220" aria-label="BPM"><button class="chip" id="bUp" aria-label="schneller">+</button><button class="chip" id="bTap">Tap</button></div></div>
 <div class="pop" id="more" hidden role="dialog" aria-label="Mehr"><button class="chip" id="mNew">Neuer Song</button><button class="chip" id="mExp">MP3 exportieren</button><button class="chip" id="mLat">Mikro-Latenz messen</button></div>
 <div class="pop" id="expPop" hidden role="dialog" aria-label="MP3-Export">
@@ -886,7 +890,7 @@ let lastPD=0;addEventListener('pointerdown',()=>{lastPD=performance.now()},true)
 addEventListener('touchstart',e=>{const t=e.target;if(!(t instanceof Element)||t.closest('input,textarea,select,.scroller,.vsheet,.pop,.mixer,.plist2'))return;e.preventDefault()},{passive:false});
 ['selectstart','contextmenu','dragstart'].forEach(n=>addEventListener(n,e=>{const t=e.target;if(t instanceof Element&&t.closest('input,textarea'))return;e.preventDefault()}));
 // any popup open and the tap lands outside it: close the popup(s), swallow the tap
-const POPS='#pmenu,#partPop,#bpmPop,#more,#mixer,#ctx,#palOv,#expPop';let swallow=0;
+const POPS='#pmenu,#partPop,#insPop,#bpmPop,#more,#mixer,#ctx,#palOv,#expPop';let swallow=0;
 addEventListener('pointerdown',e=>{const open=[...document.querySelectorAll(POPS)].filter(p=>!p.hidden);if(!open.length||open.some(p=>p.contains(e.target)))return;
   open.forEach(p=>{p.hidden=true});e.stopImmediatePropagation();e.preventDefault();swallow=performance.now()},true);
 ['pointerup','click'].forEach(t=>addEventListener(t,e=>{if(swallow&&performance.now()-swallow<900){e.stopImmediatePropagation();e.preventDefault();if(t==='click')swallow=0}},true));
@@ -1375,33 +1379,50 @@ function nameFor(t){const n=Object.values(song.segs).filter(x=>x.type===t).lengt
 function renameFirst(t){const segs=Object.values(song.segs).filter(x=>x.type===t);if(segs.length>1){const f=segs.find(x=>x.name===TYPES[t]);if(f)f.name=TYPES[t]+' 1'}}
 function renderPartBtn(){$('#partName').textContent=segOf(st.sel).name;$('#partBtn').style.setProperty('--pc',`var(--c-${segOf(st.sel).type})`)}
 press($('#partBtn'),()=>{if(!lp.hidden){lp.hidden=true;return}renderPartList();popUnder(lp,$('#partBtn'))});
+const TRANS=[['none','–'],['fill','Fill'],['build','Steigern'],['break','Break'],['pickup','V7'],['crash','Crash']];
+const barOpts=n=>[4,8,12,16].map(v=>`<option value="${v}"${n===v?' selected':''}>${v} T</option>`).join('');
+const grvOpts=k=>Object.entries(GROOVES).map(([v,o])=>`<option value="${v}"${k===v?' selected':''}>${o.n}</option>`).join('');
+const trOpts=k=>TRANS.map(([v,l])=>`<option value="${v}"${k===v?' selected':''}>${l}</option>`).join('');
 function renderPartList(){
   const seen=new Set();
   lp.innerHTML=`<div class="plist">`+song.arr.map((id,i)=>{const g=song.segs[id],lk=seen.has(id);seen.add(id);
-    return `<div class="prow${i===st.sel?' sel':''}" data-i="${i}" style="--pc:var(--c-${g.type})"><span class="handle" aria-hidden="true">⋮⋮</span><span class="pnm">${g.name}${lk?' ↺':''}</span>
-      <select data-s="bars" aria-label="Takte">${[4,8,12,16].map(n=>`<option value="${n}"${g.bars===n?' selected':''}>${n} T</option>`).join('')}</select>
-      <select data-s="groove" aria-label="Drums">${Object.entries(GROOVES).map(([k,v])=>`<option value="${k}"${g.groove===k?' selected':''}>${v.n}</option>`).join('')}</select>
-      <select data-s="trans" aria-label="Ende des Teils">${[['none','Ende: –'],['fill','Ende: Fill'],['build','Ende: Steigern'],['break','Ende: Break'],['pickup','Ende: V7'],['crash','Ende: Crash']].map(([k,l])=>`<option value="${k}"${g.trans===k?' selected':''}>${l}</option>`).join('')}</select>
-      <button class="mini" data-a="copy" title="Duplizieren (Kopie)" aria-label="Duplizieren">⎘</button><button class="mini" data-a="link" title="Verknüpft duplizieren" aria-label="Verknüpft duplizieren">↺</button><button class="mini" data-a="del" title="Löschen" aria-label="Löschen">✕</button></div>`}).join('')+`</div>
-    <div class="pmr"><span class="unit">Einfügen</span><select id="insSel" aria-label="Teil einfügen"><option value="">Teil wählen …</option>${Object.keys(TYPES).map(t=>`<option value="${t}">${nameFor(t)}</option>`).join('')}</select></div>`;
-  lp.querySelector('#insSel').addEventListener('change',e=>{const t=e.target.value;if(!t)return;const g=newSeg(t,t==='intro'||t==='outro'||t==='pre'?4:8);g.name=nameFor(t);
-    song.segs[g.id]=g;renameFirst(t);const at=st.sel+1;song.arr.splice(at,0,g.id);touch();renderTimeline();selectPart(at);showSel();renderPartList()});
-  lp.querySelectorAll('.prow').forEach(row=>{const i=+row.dataset.i;
+    return `<div class="prow${i===st.sel?' sel':''}" data-i="${i}" style="--pc:var(--c-${g.type})"><span class="pnm" title="Halten und ziehen zum Verschieben">${g.name}${lk?' ↺':''}</span>
+      <select data-s="bars" aria-label="Takte">${barOpts(g.bars)}</select><select data-s="groove" aria-label="Drums">${grvOpts(g.groove)}</select><select data-s="trans" aria-label="Ende des Teils">${trOpts(g.trans)}</select>
+      <button class="mini" data-a="copy" title="Duplizieren (Kopie)" aria-label="Duplizieren">⎘</button><button class="mini" data-a="link" title="Verknüpft duplizieren" aria-label="Verknüpft duplizieren">↺</button><button class="mini" data-a="del" title="Löschen" aria-label="Löschen">✕</button></div>`}).join('')+`
+    <button class="prow padd2" id="insBtn" aria-label="Teil nach dem gewählten einfügen" title="Teil nach dem gewählten einfügen">+</button></div>`;
+  press(lp.querySelector('#insBtn'),()=>openInsert($('#partBtn')));
+  lp.querySelectorAll('.prow[data-i]').forEach(row=>{const i=+row.dataset.i;
     row.querySelectorAll('select[data-s]').forEach(sel=>{sel.addEventListener('pointerdown',e=>e.stopPropagation());sel.addEventListener('change',()=>{const g=segOf(i),k=sel.dataset.s;
       if(k==='bars'){setBars(i,+sel.value);renderPartList();return}if(k==='groove')setGroove(g,sel.value);else g[k]=sel.value;touch();renderChordsLane();drawDrumsLane();renderChordView()})});
     row.querySelectorAll('[data-a]').forEach(b=>{b.addEventListener('pointerdown',e=>e.stopPropagation());b.addEventListener('click',e=>{e.stopPropagation();const a=b.dataset.a;
       if(a==='del'){if(song.arr.length<2){toast('Der letzte Teil bleibt');return}if(!b.classList.contains('on')){b.classList.add('on','arm');b.textContent='Löschen?';return}
         stopTransport();const id=song.arr.splice(i,1)[0];if(!song.arr.includes(id))delete song.segs[id];st.sel=Math.min(st.sel>i?st.sel-1:st.sel,song.arr.length-1);st.head=partsList()[st.sel].start;touch();renderAll();renderPartList();return}
       pmWhere='after';dupPart(i,a==='link');renderPartList()})});
-    // tap = select, tap-and-drag = move
-    row.addEventListener('pointerdown',e=>{if(e.button)return;e.preventDefault();const y0=e.clientY,h=row.offsetHeight+4;let drag=false,to=i;try{row.setPointerCapture(e.pointerId)}catch(_){}
+    // tap = select; hold the name and drag = move
+    row.addEventListener('pointerdown',e=>{if(e.button)return;const onName=!!e.target.closest('.pnm');if(!onName){selectPart(i);showSel();renderPartList();return}
+      e.preventDefault();const y0=e.clientY,h=row.offsetHeight+4;let drag=false,to=i;try{row.setPointerCapture(e.pointerId)}catch(_){}
       const mv=ev=>{const dy=ev.clientY-y0;if(!drag&&Math.abs(dy)>6){drag=true;row.classList.add('drag')}if(!drag)return;row.style.transform=`translateY(${dy}px)`;to=clamp(i+Math.round(dy/h),0,song.arr.length-1)};
       const up=()=>{row.removeEventListener('pointermove',mv);row.removeEventListener('pointerup',up);row.removeEventListener('pointercancel',up);
         if(!drag){selectPart(i);showSel();renderPartList();return}
-        if(to!==i){const id=song.arr.splice(i,1)[0];song.arr.splice(to,0,id);const selId=song.arr[st.sel];st.sel=to;stopTransport();st.head=partsList()[to].start;touch();renderTimeline()}
+        if(to!==i){const id=song.arr.splice(i,1)[0];song.arr.splice(to,0,id);st.sel=to;stopTransport();st.head=partsList()[to].start;touch();renderTimeline()}
         renderPartList()};
       row.addEventListener('pointermove',mv);row.addEventListener('pointerup',up);row.addEventListener('pointercancel',up)});
   });
+}
+/* insert a part after the selected one: type + bars + drums + ending, confirm with the tick */
+const insPop=$('#insPop'),ins={t:'verse',bars:8,groove:'pop',trans:'none',barsSet:false};
+const defBars=t=>t==='intro'||t==='outro'||t==='pre'?4:8;
+function openInsert(anchor){Object.assign(ins,{t:'verse',bars:8,groove:'pop',trans:'none',barsSet:false});renderInsert();popUnder(insPop,anchor,false)}
+function renderInsert(){
+  insPop.innerHTML=`<div class="pmr"><b style="--pc:var(--c-${ins.t})">Neuer Teil</b><span class="sp"></span><button class="okbtn sm" id="insOk" aria-label="Einfügen" title="Einfügen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m7.5 12.5 3 3 6-6.5"/></svg></button></div>
+   <div class="pmr insrow"><select id="insT" aria-label="Art">${Object.keys(TYPES).map(t=>`<option value="${t}"${ins.t===t?' selected':''}>${nameFor(t)}</option>`).join('')}</select>
+   <select id="insB" aria-label="Takte">${barOpts(ins.bars)}</select><select id="insG" aria-label="Drums">${grvOpts(ins.groove)}</select><select id="insE" aria-label="Ende">${trOpts(ins.trans)}</select></div>`;
+  $('#insT').addEventListener('change',e=>{ins.t=e.target.value;if(!ins.barsSet)ins.bars=defBars(ins.t);if(ins.t==='intro'||ins.t==='outro')ins.groove=ins.groove;renderInsert()});
+  $('#insB').addEventListener('change',e=>{ins.bars=+e.target.value;ins.barsSet=true});
+  $('#insG').addEventListener('change',e=>{ins.groove=e.target.value});
+  $('#insE').addEventListener('change',e=>{ins.trans=e.target.value});
+  press($('#insOk'),()=>{const g=newSeg(ins.t,ins.bars);g.name=nameFor(ins.t);g.trans=ins.trans;g.groove='none';song.segs[g.id]=g;setGroove(g,ins.groove);renameFirst(ins.t);
+    const at=st.sel+1;song.arr.splice(at,0,g.id);insPop.hidden=true;touch();renderTimeline();selectPart(at);showSel();renderPartList();toast(`${g.name} eingefügt`)});
 }
 
 /* ================= start sheet: key, tempo, template ================= */
@@ -2231,7 +2252,7 @@ async function saveFile(file){ // iPhone/iPad: share sheet (→ In Dateien siche
 function addCloser(el,close){const put=()=>{if(!el.hidden&&!el.querySelector(':scope>.popx')){const b=document.createElement('button');b.className='popx';b.setAttribute('aria-label','Schließen');b.textContent='✕';
     b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();close()});b.addEventListener('click',e=>{if(e.detail===0)close()});el.prepend(b)}};
   new MutationObserver(put).observe(el,{childList:true,attributes:true,attributeFilter:['hidden']});put()}
-[pm,lp,bpmPop,mixer,ctx,palOv,$('#expPop')].forEach(el=>addCloser(el,()=>{el.hidden=true}));
+[pm,bpmPop,mixer,ctx,palOv,$('#expPop')].forEach(el=>addCloser(el,()=>{el.hidden=true}));
 
 /* ================= frame ================= */
 function ui(){$('#playBtn').classList.toggle('on',st.running);$('#playBtn').innerHTML=st.running?ICON_STOP:ICON_PLAY;$('#micBtn').classList.toggle('on',!!vrec||!!kbrec);undoUi();
