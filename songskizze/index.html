@@ -24,6 +24,10 @@
   color-scheme:dark;
 }
 [hidden]{display:none!important}
+/* no iOS text selection, callout or magnifier loupe anywhere – except where you type */
+*,*::before,*::after{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-user-drag:none;-webkit-tap-highlight-color:transparent}
+input,textarea,.lname-in{-webkit-user-select:text;user-select:text}
+html,body{touch-action:manipulation}
 html,body{background:var(--bg);color:var(--fg);height:100%}
 body{margin:0;font-family:var(--f-ui);font-size:15px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none;
   padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));
@@ -560,6 +564,9 @@ const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const mod=(a,n)=>((a%n)+n)%n,clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 const uid=()=>Math.random().toString(36).slice(2,9);
 let lastPD=0;addEventListener('pointerdown',()=>{lastPD=performance.now()},true);
+// iOS: a long press would bring up the magnifier – cancel the native touch gesture wherever nothing scrolls or is typed into
+addEventListener('touchstart',e=>{const t=e.target;if(!(t instanceof Element)||t.closest('input,textarea,select,.scroller,.vsheet,.pop,.mixer,.plist2'))return;e.preventDefault()},{passive:false});
+['selectstart','contextmenu','dragstart'].forEach(n=>addEventListener(n,e=>{const t=e.target;if(t instanceof Element&&t.closest('input,textarea'))return;e.preventDefault()}));
 // any popup open and the tap lands outside it: close the popup(s), swallow the tap
 const POPS='#pmenu,#partPop,#bpmPop,#more,#mixer,#ctx,#palOv';let swallow=0;
 addEventListener('pointerdown',e=>{const open=[...document.querySelectorAll(POPS)].filter(p=>!p.hidden);if(!open.length||open.some(p=>p.contains(e.target)))return;
