@@ -50,6 +50,8 @@ select{height:34px;border-radius:8px;background:var(--raised) url("data:image/sv
 #bpmBtn{height:34px;border-radius:8px;background:var(--raised);padding:0 10px;font:600 15px var(--f-num);color:var(--fg)}
 #bpmBtn small{font:600 10px var(--f-ui);letter-spacing:.12em;color:var(--dim);margin-left:4px}
 #keySel{max-width:130px}
+.head>*{flex-shrink:0}.head>#partBtn{flex-shrink:1;min-width:64px}.head>.sp{flex-shrink:1;min-width:0}
+#undoBtn:disabled,#redoBtn:disabled{opacity:.55}
 
 /* timeline */
 .tlbox{background:var(--panel);border:1px solid var(--line);border-radius:12px;display:grid;grid-template-columns:96px minmax(0,1fr);overflow:hidden;flex:none}
@@ -400,6 +402,9 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
   .head .chip,.head select,#bpmBtn,#partBtn,#clock{height:24px;font-size:12px}
   .head .chip.ib,.head .chip.go{width:26px;min-width:26px}
   #clock{font-size:13px}
+  #keySel{width:66px;max-width:66px;padding:0 16px 0 6px;background-position:right 5px center;text-overflow:clip}
+  #partBtn{max-width:100px}
+  #bpmBtn small{display:none}
   .scroller{padding:3px 0 4px}.labs{padding:3px 4px 4px 6px;gap:2px}.track{gap:2px}
   .h-ruler,.ruler,.pblk,.padd{height:20px}.padd{width:20px}.pn{font-size:10px}.bn{font-size:8px}
   .h-drums,.h-chords,.h-vocal,.r-drums,.r-chords,.r-vocal{height:18px}

@@ -1,5 +1,5 @@
 // Songskizze – offline cache. VERSION is set by the build.
-const VERSION = 'songskizze-bff99bd488';
+const VERSION = 'songskizze-2550239aa5';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES.map(f => new Request(f, {cache: 'reload'})))).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('songskizze-') && k !== VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
