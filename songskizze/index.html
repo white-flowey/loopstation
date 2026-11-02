@@ -1879,8 +1879,7 @@ function drawVocalLane(){
       g.globalAlpha=1}
     if(seg.melody.length){let lo=127,hi=0;seg.melody.forEach(n=>{lo=Math.min(lo,n.m);hi=Math.max(hi,n.m)});lo-=2;hi+=2;
       g.fillStyle=C('--fg');seg.melody.forEach(n=>{const x=gx(n.t,d)+Math.round(d),w=Math.max(3*d,gx(n.d,d)-2*d),y=Math.round((hi-n.m)/(hi-lo)*(H-6*d)+1*d);g.fillRect(x,y,w,3*d)});
-      g.fillStyle=C('--dim');g.font=`600 ${10*d}px ${C('--f-num')}`;g.textBaseline='top';
-      seg.melody.forEach((n,k)=>{if(k===0||seg.melody[k-1].m!==n.m){const x=gx(n.t,d)+2*d,y=(hi-n.m)/(hi-lo)*(H-6*d)+1*d;g.fillText(NN[mod(n.m,12)],x,Math.min(H-11*d,y+4*d))}})}
+}
   });
   
 }
@@ -2011,8 +2010,7 @@ function drawVRoll(){if(st.lane!=='vocal')return;const g=segOf(st.sel),L=g.bars*
   const col=C('--c-'+g.type);gc.textBaseline='top';
   notes.forEach(n=>{const x=X(n.t)+Math.round(d),w=Math.max(3*d,X(n.t+n.d)-X(n.t)-2*d),h=Math.max(10*d,rowH*.9),y=Y(n.m)-h/2;
     gc.globalAlpha=live?.7:.9;gc.fillStyle=col;gc.beginPath();gc.roundRect?gc.roundRect(x,y,w,h,2*d):gc.rect(x,y,w,h);gc.fill();gc.globalAlpha=1;
-    if(w>22*d){gc.fillStyle='#0e0f12';gc.font=`700 ${10*d}px ${C('--f-ui')}`;gc.fillText(NN[mod(n.m,12)],x+3*d,y+Math.max(0,(h-10*d)/2))}
-    const dg=degree(n.m,chordAt(g,n.t));if(dg){gc.fillStyle=C('--dim');gc.font=`600 ${10*d}px ${C('--f-num')}`;gc.fillText(dg,x+1,y+h+2*d)}});
+    gc.fillStyle=C('--dim');gc.font=`600 ${10*d}px ${C('--f-ui')}`;gc.fillText(NN[mod(n.m,12)],x+1,y+h+2*d)}); // note name under the bar
 }
 function placeVPh(){if(st.lane!=='vocal')return;const p=posNow(0),pp=partsList()[st.sel];let t=st.head-pp.start;if(p&&!p.cin&&p.it&&p.it.i===st.sel)t=p.pos;
   if(t<0||t>pp.len){vPh.hidden=true;return}vPh.hidden=false;vPh.style.left=(t/4*VPX)+'px';vPh.classList.toggle('run',!!(p&&!p.cin))}
