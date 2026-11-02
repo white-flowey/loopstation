@@ -79,7 +79,7 @@ select{height:34px;border-radius:8px;background:var(--raised) url("data:image/sv
 .pblk{position:absolute;top:0;height:22px;border-radius:6px;background:color-mix(in srgb,var(--pc) 22%,var(--panel));border:1px solid color-mix(in srgb,var(--pc) 45%,transparent);
   text-align:left;padding:3px 8px;box-sizing:border-box;display:flex;align-items:flex-start;overflow:hidden}
 .pblk.sel{border-color:var(--fg);box-shadow:inset 0 0 0 1px var(--fg)}
-.pn{position:absolute;left:2px;bottom:5px;line-height:1;font-weight:700;font-size:13px;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--fg);pointer-events:none;text-align:left}
+.pn{position:absolute;left:5px;bottom:5px;line-height:1;font-weight:700;font-size:13px;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--fg);pointer-events:none;text-align:left}
 .bn,.pn .b1{font:600 10px/1 var(--f-num);color:color-mix(in srgb,var(--fg) 55%,transparent);letter-spacing:0}
 .bn{position:absolute;bottom:5px;pointer-events:none}.pn .b1{font-style:normal;margin-right:5px}
 .padd{position:absolute;top:0;width:22px;height:22px;line-height:1;border-radius:7px;background:var(--raised);color:var(--dim);font-size:20px}
@@ -1460,7 +1460,7 @@ const shortName=g=>{const m=g.name.match(/^(Intro|Verse|Pre-Chorus|Chorus|Bridge
 function renderRuler(){
   const ps=partsList(),seen=new Set();let h='';
   ps.forEach(p=>{const lk=seen.has(p.seg.id);seen.add(p.seg.id);
-    h+=`<button class="pblk${p.i===st.sel?' sel':''}" data-i="${p.i}" style="left:${bx(p.start)}px;width:${bx(p.len)}px;--pc:var(--c-${p.seg.type})"><span class="pn" title="${p.seg.name}"><i class="b1">${p.start/4+1}</i>${shortName(p.seg)}${lk?'↺':''}</span></button>`;
+    h+=`<button class="pblk${p.i===st.sel?' sel':''}" data-i="${p.i}" style="left:${bx(p.start)}px;width:${bx(p.len)}px;--pc:var(--c-${p.seg.type})"><span class="pn" title="${p.seg.name}">${shortName(p.seg)}${lk?'↺':''}</span></button>`;
     for(let b=1;b<p.seg.bars;b++)h+=`<span class="bn" style="left:${bx(p.start+b*4)+3}px">${p.start/4+b+1}</span>`});
   h+=`<button class="padd" style="left:${bx(totalBeats())+4}px" aria-label="Teil hinzufügen">+</button>`;
   ruler.innerHTML=h;
