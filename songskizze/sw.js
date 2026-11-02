@@ -10,7 +10,8 @@ self.addEventListener('fetch', e => {
 });
 async function networkFirst(req) {
   const c = await caches.open(VERSION);
-  try { const r = await Promise.race([fetch(req, {cache: 'no-store'}), new Promise((_, rej) => setTimeout(rej, 3500))]); if (r && r.ok) { c.put('./index.html', r.clone()); return r; } } catch (_) {}
-  return (await c.match('./index.html')) || (await c.match(req)) || Response.error();
+  const net = fetch(req, {cache: 'no-store'}).then(r => { if (r && r.ok) c.put('./index.html', r.clone()); return r; });
+  try { const r = await Promise.race([net, new Promise((_, rej) => setTimeout(rej, 3500))]); if (r && r.ok) return r; } catch (_) {}
+  return (await c.match('./index.html')) || (await c.match(req)) || net.catch(() => Response.error());
 }
 async function cacheFirst(req) { const c = await caches.open(VERSION); const hit = await c.match(req, {ignoreSearch: true}); if (hit) return hit; const r = await fetch(req); if (r.ok) c.put(req, r.clone()); return r; }
