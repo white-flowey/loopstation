@@ -307,7 +307,7 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
 .chip.ib.snd[aria-pressed="true"]{background:var(--raised);color:var(--fg)}.chip.ib.snd[aria-pressed="false"]{color:var(--dim)}
 #sheetBtn[aria-pressed="true"]{background:var(--fg);color:var(--bg)}#sheetBtn[aria-pressed="false"]{color:var(--faint)}
 .vroll{position:relative;height:210px;flex:none;background:#0e0f12;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.vroll canvas{position:absolute;left:0;top:0;height:100%;display:block}
+.vroll canvas{position:absolute;left:0;top:0;height:100%;display:block;cursor:grab;touch-action:none}
 #vPh{position:absolute;top:0;bottom:0;width:3px;margin-left:-1px;background:var(--fg);opacity:.5;pointer-events:none}
 #vPh.run{background:var(--play);opacity:.9}
 .vsheet{flex:1;min-height:200px;overflow-y:auto;background:#f4f1e8;border-radius:10px;padding:6px 8px;color:#111}
@@ -1129,9 +1129,11 @@ function ensureCtx(){
   if(ac.state!=='running')ac.resume();return ac;
 }
 function impulse(sec){const sr=ac.sampleRate,n=Math.floor(sr*sec),b=ac.createBuffer(2,n,sr);for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,3.2)*(i<sr*.01?i/(sr*.01):1)}return b}
-function applyMix(){if(!ac)return;const solo=CH.some(k=>mix[k].s);const t=ac.currentTime;
+const MIXCH=CH.filter(k=>k!=='melody'); // the melody piano follows the Gesang channel
+function applyMix(){if(!ac)return;const solo=MIXCH.some(k=>mix[k].s);const t=ac.currentTime;
   BUS.master.gain.setTargetAtTime(curve(mix.master),t,.02);
-  CH.forEach(k=>{const c=mix[k],on=!c.m&&(!solo||c.s||k==='click');BUS[k].gain.setTargetAtTime(on?curve(c.v):0,t,.02);BUS[k+'Send'].gain.setTargetAtTime(c.r,t,.02)})}
+  CH.forEach(k=>{const c=k==='melody'?mix.vocal:mix[k],muted=c.m||(k==='melody'&&mix.melody.m),on=!muted&&(!solo||c.s||k==='click');
+    BUS[k].gain.setTargetAtTime(on?curve(c.v):0,t,.02);BUS[k+'Send'].gain.setTargetAtTime(c.r,t,.02)})}
 function playDrum(s,t,v,dest,loop){const id=s==='crash'?'crashR':s,b=bufFor(song.kit,id);if(!b)return;const src=ac.createBufferSource(),g=ac.createGain();src.buffer=b;g.gain.value=(DMIX[id]||.7)*(v||1)*(.93+Math.random()*.07);src.connect(g).connect(dest||BUS.drums);src.start(t);
   if(id==='hhc')openHats.forEach(o=>{if(o.t<t)o.g.gain.setTargetAtTime(0,t,.012)});if(id==='hho'){openHats=openHats.filter(o=>o.t>t-2);openHats.push({g,t})}
   if(!exporting)setTimeout(()=>flash(id,loop===false?1:.45),Math.max(0,(t-ac.currentTime)*1000))}
@@ -1759,12 +1761,14 @@ const palOv=$('#palOv');
 function renderPalOv(){
   const cs=candidates();
   palOv.innerHTML=`<div class="pmr"><b style="--pc:var(--fg)">${NN[song.key.root]}-${song.key.minor?'Moll':'Dur'}</b></div>
-   <div class="pmr">${cs.map((c,i)=>`<button class="chip nc${song.palette.some(p=>samePal(p,c))?' on':''}" data-c="${i}">${chordName(c)}<small>${(c.roman||'').replace(/^b/,'♭')}</small></button>`).join('')}</div>
+   <div class="pmr">${cs.map((c,i)=>`<button class="chip nc" data-c="${i}">${chordName(c)}<small>${(c.roman||'').replace(/^b/,'♭')}</small></button>`).join('')}</div>
    <div class="unit">Deine Palette</div>
    <div class="plist2">${song.palette.map((c,i)=>`<span class="pent"><button data-ed="${i}" aria-label="${chordName(c)} einstellen"><b>${chordName(c)}</b><small>${(c.roman||'').replace(/^b/,'♭')}${c.inv!=='auto'?' · '+['G','1.','2.','3.'][c.inv]:''}</small></button><button class="x" data-rm="${i}" aria-label="${chordName(c)} entfernen">✕</button></span>`).join('')}<button class="pent add" data-act="own" aria-label="Eigenen Akkord anlegen">+</button></div>
 `;
-  palOv.querySelectorAll('[data-c]').forEach(b=>press(b,()=>{const c=candidates()[+b.dataset.c],k=song.palette.findIndex(p=>samePal(p,c));ensureCtx();
-    if(k>=0)song.palette.splice(k,1);else{song.palette.push(cloneChord(c));const s=playChordLive(c);setTimeout(s,500)}touch();renderPalCol()}));
+  palOv.querySelectorAll('[data-c]').forEach(b=>press(b,()=>{const c=candidates()[+b.dataset.c],k=song.palette.findIndex(p=>samePal(p,c));ensureCtx();const s=playChordLive(c);setTimeout(s,500);
+    if(k<0){song.palette.push(cloneChord(c));touch();renderPalCol();return}
+    // already there: a variation (e.g. Gm → Gm6) – edit a copy; if it stays identical it is dropped again
+    song.palette.push(cloneChord(c));edTemp=true;palOv.hidden=true;renderPalCol();openEditor(song.palette.length-1)}));
   palOv.querySelectorAll('[data-ed]').forEach(b=>press(b,()=>{palOv.hidden=true;openEditor(+b.dataset.ed)}));
   palOv.querySelectorAll('[data-rm]').forEach(b=>press(b,()=>{song.palette.splice(+b.dataset.rm,1);touch();renderPalCol()}));
   press(palOv.querySelector('[data-act=own]'),()=>{song.palette.push({root:song.key.root,q:song.key.minor?'m':'',inv:'auto',bass:null,roman:''});touch();renderPalCol();palOv.hidden=true;openEditor(song.palette.length-1)});
@@ -1840,8 +1844,11 @@ addEventListener('pointerdown',e=>{if(!ctx.hidden&&!ctx.contains(e.target)&&!e.t
 
 /* ---- chord editor (popup from the palette) ---- */
 let edI=-1;const edQual=$('#edQual'),edInv=$('#edInv'),edBass=$('#edBass');
+let edTemp=false;
+const sameChord=(a,b)=>samePal(a,b)&&String(a.inv)===String(b.inv);
 function openEditor(i){edI=i;$('#editor').hidden=false;$('#shade').hidden=false;renderEditor()}
-function closeEditor(){$('#editor').hidden=true;if(start.hidden)$('#shade').hidden=true;edI=-1;renderPalCol()}
+function closeEditor(){const c=song.palette[edI];if(edTemp&&c&&song.palette.some((p,j)=>j!==edI&&sameChord(p,c))){song.palette.splice(edI,1);toast('Unverändert – kein zweiter Eintrag')}else if(edTemp)touch();
+  edTemp=false;$('#editor').hidden=true;if(start.hidden)$('#shade').hidden=true;edI=-1;renderPalCol()}
 const QLBL=q=>q===''?'Dur':q==='m'?'Moll':q==='dim'?'° vermindert':q==='aug'?'+ übermäßig':q==='dim7'?'°7 vermindert':q==='m7b5'?'ø halbvermindert':QSYM[q];
 function renderEditor(){
   const c=song.palette[edI];if(!c){closeEditor();return}$('#edName').textContent=chordName(c);$('#edNotes').textContent=voice(c).map(m=>NN[mod(m,12)]).join(' · ');
@@ -1973,7 +1980,7 @@ function stopVocalRec(cancel){
   if(!cancel&&r.chunks.length&&r.frames.length){
     const sr=ac.sampleRate,len=Math.round(r.len*spb()*sr),out=ac.createBuffer(1,len,sr),o=out.getChannelData(0);
     r.chunks.forEach(c=>{const idx=Math.round((c.t-r.t0-r.lat)*sr);for(let i=0;i<c.d.length;i++){const j=idx+i;if(j>=0&&j<len)o[j]=c.d[i]}});
-    const LL=loopLenAt(eB,r.len);let frames=r.frames,looped=0;
+    const pre=notesFromFrames(r.frames,r.len),lastT=pre.length?pre[pre.length-1].t:-1,LL=eB<r.len-.5&&lastT>=0?Math.min(r.len,(Math.floor(lastT/4)+1)*4):0;let frames=r.frames,looped=0;
     if(LL&&LL<r.len){const n=Math.round(LL*spb()*sr);for(let at=n;at<len;at+=n)o.copyWithin(at,0,Math.min(n,len-at));
       const base=r.frames.filter(f=>f.t<LL);frames=[];for(let k=0;k*LL<r.len;k++)base.forEach(f=>{const t=f.t+k*LL;if(t<r.len)frames.push({...f,t})});looped=Math.ceil(r.len/LL)}
     r.frames=frames;const mel=notesFromFrames(r.frames,r.len);
@@ -1982,7 +1989,7 @@ function stopVocalRec(cancel){
   }
   if(st.running&&st.mode==='seg')stopTransport();
   liveNotes=[];renderLabs();drawVocalLane();renderVocal();ui()}
-function requantize(){const g=segOf(st.sel),fr=g.takeFr&&g.takeFr[g.take];if(g.melSrc==='kb'&&g.kbRaw){g.melody=kbNotes(g.kbRaw);touch();drawVocalLane();renderVocal();return}if(fr){g.melody=notesFromFrames(fr,g.bars*4);touch()}else toast('Quantisierung gilt für neu eingesungene Takes');drawVocalLane();renderVocal()}
+function requantize(){const g=segOf(st.sel),fr=g.takeFr&&g.takeFr[g.take];if(g.melSrc==='edit'){const q=song.q;if(q)g.melody.forEach(n=>{const e=Math.max(Math.round((n.t+n.d)/q)*q,Math.round(n.t/q)*q+q);n.t=Math.round(n.t/q)*q;n.d=e-n.t});touch();drawVocalLane();renderVocal();return}if(g.melSrc==='kb'&&g.kbRaw){g.melody=kbNotes(g.kbRaw);touch();drawVocalLane();renderVocal();return}if(fr){g.melody=notesFromFrames(fr,g.bars*4);touch()}else toast('Quantisierung gilt für neu eingesungene Takes');drawVocalLane();renderVocal()}
 $('#qSel').addEventListener('change',e=>{song.q=+e.target.value;saveSoon();ver++;requantize();drawDrumsLane()});
 $('#vpSel').addEventListener('change',e=>{song.vp=e.target.value;requantize()});
 $('#takeSel').addEventListener('change',e=>{const g=segOf(st.sel);g.take=+e.target.value;const fr=g.takeFr&&g.takeFr[g.take];if(fr)g.melody=notesFromFrames(fr,g.bars*4);touch();renderLabs();drawVocalLane();renderVocal()});
@@ -1999,7 +2006,8 @@ function drawVRoll(){if(st.lane!=='vocal')return;const g=segOf(st.sel),L=g.bars*
   let maxR=0;(fr||[]).forEach(f=>{maxR=Math.max(maxR,f.rms)});const gate=Math.max(.008,maxR*.12);
   let lo=200,hi=-1;(fr||[]).forEach(f=>{if(f.ok&&f.m!=null&&f.rms>=gate&&f.m>30&&f.m<100){lo=Math.min(lo,f.m);hi=Math.max(hi,f.m)}});notes.forEach(n=>{lo=Math.min(lo,n.m);hi=Math.max(hi,n.m)});
   if(hi<0){lo=57;hi=74}lo=Math.floor(lo)-2;hi=Math.ceil(hi)+2;if(hi-lo<16){const c=(hi+lo)/2;lo=Math.floor(c-8);hi=lo+16}
-  const top=16*d,bot=16*d,rowH=(H-top-bot)/(hi-lo+1),Y=m=>top+(hi-m)*rowH,X=t=>Math.round(t*VPX*d/4);
+  if(vDrag){lo=vDrag.lo;hi=vDrag.hi}
+  const top=16*d,bot=16*d,rowH=(H-top-bot)/(hi-lo+1),Y=m=>top+(hi-m)*rowH,X=t=>Math.round(t*VPX*d/4);vRoll._geo={lo,hi,top:top/d,rowH:rowH/d,px:VPX,live};
   for(let m=lo;m<=hi;m++){const pc=mod(m,12);if([1,3,6,8,10].includes(pc)){gc.fillStyle='#0b0c0e';gc.fillRect(0,Y(m)-rowH/2,W,rowH)}if(pc===0){gc.fillStyle='#262a30';gc.fillRect(0,Math.round(Y(m)+rowH/2),W,Math.max(1,Math.round(d)))}}
   for(let k=0;k<L;k++){gc.fillStyle=k%4===0?'#3a4048':'#1d2025';gc.fillRect(X(k),0,Math.max(1,Math.round(d)),H)}
   gc.font=`600 ${10*d}px ${C('--f-num')}`;gc.textBaseline='middle';gc.fillStyle=C('--faint');
@@ -2015,6 +2023,16 @@ function drawVRoll(){if(st.lane!=='vocal')return;const g=segOf(st.sel),L=g.bars*
     gc.globalAlpha=live?.7:.9;gc.fillStyle=col;gc.beginPath();gc.roundRect?gc.roundRect(x,y,w,h,2*d):gc.rect(x,y,w,h);gc.fill();gc.globalAlpha=1;
     gc.fillStyle=C('--dim');gc.font=`600 ${10*d}px ${C('--f-ui')}`;gc.fillText(NN[mod(n.m,12)],x+1,y+h+2*d)}); // note name under the bar
 }
+let vDrag=null;
+vRoll.addEventListener('pointerdown',e=>{if(e.button||vrec||kbrec)return;const G=vRoll._geo;if(!G||G.live)return;const g=segOf(st.sel),r=vRoll.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  const tb=x/G.px*4,mf=G.hi-(y-G.top)/G.rowH,n=g.melody.find(n=>tb>=n.t-.05&&tb<=n.t+n.d+.05&&Math.abs(n.m-mf)<=.7);if(!n)return;
+  e.preventDefault();try{vRoll.setPointerCapture(e.pointerId)}catch(_){}ensureCtx();playPiano(n.m,ac.currentTime+.005,.3,.6,'melody');
+  const t0=n.t,m0=n.m,L=g.bars*4;let moved=false;vDrag={lo:G.lo,hi:G.hi};
+  const mv=ev=>{const q=song.q;let t=t0+(ev.clientX-e.clientX)/G.px*4;if(q)t=Math.round(t/q)*q;t=clamp(t,0,Math.max(0,L-n.d));const m=clamp(Math.round(m0+(e.clientY-ev.clientY)/G.rowH),24,108);
+    if(Math.abs(t-n.t)>1e-6||m!==n.m){moved=true;if(m!==n.m)playPiano(m,ac.currentTime+.005,.25,.55,'melody');n.t=t;n.m=m;drawVRoll()}};
+  const up=()=>{vRoll.removeEventListener('pointermove',mv);vRoll.removeEventListener('pointerup',up);vRoll.removeEventListener('pointercancel',up);vDrag=null;
+    if(moved){g.melody.sort((a,b)=>a.t-b.t);g.melSrc='edit';g.kbRaw=null;touch();drawVocalLane();renderVocal()}else drawVRoll()};
+  vRoll.addEventListener('pointermove',mv);vRoll.addEventListener('pointerup',up);vRoll.addEventListener('pointercancel',up)});
 function placeVPh(){if(st.lane!=='vocal')return;const p=posNow(0),pp=partsList()[st.sel];let t=st.head-pp.start;if(p&&!p.cin&&p.it&&p.it.i===st.sel)t=p.pos;
   if(t<0||t>pp.len){vPh.hidden=true;return}vPh.hidden=false;vPh.style.left=(t/4*VPX)+'px';vPh.classList.toggle('run',!!(p&&!p.cin))}
 let vLast=0;
@@ -2093,7 +2111,7 @@ function kbLive(){const b=ac&&st.running?beatAt(ac.currentTime):0;return[...kbre
 function kbToggle(){ensureCtx();if(kbrec){kbFinish();return}const g=segOf(st.sel);kbrec={seg:g,len:g.bars*4,notes:[],open:new Set()};liveNotes=[];
   st.rec=false;st.loop=true;cycleStart();startTransport('seg',true);kbrec.timer=setTimeout(()=>kbFinish(),(timeAt(kbrec.len)-ac.currentTime+.1)*1000);ui()}
 function kbFinish(){const r=kbrec;if(!r)return;clearTimeout(r.timer);let raw=kbLive();const eB=ac&&st.running?beatAt(ac.currentTime):r.len;kbrec=null;
-  const LL=loopLenAt(eB,r.len);let looped=0;if(raw.length&&LL&&LL<r.len){const base=raw.filter(n=>n.t<LL);raw=[];for(let k=0;k*LL<r.len;k++)base.forEach(n=>{const t=n.t+k*LL;if(t<r.len)raw.push({...n,t,d:Math.min(n.d,LL)})});looped=Math.ceil(r.len/LL)}
+  const lastT=raw.length?Math.max(...raw.map(n=>n.t)):-1,LL=eB<r.len-.5&&lastT>=0?Math.min(r.len,(Math.floor(lastT/4)+1)*4):0;let looped=0;if(raw.length&&LL&&LL<r.len){const base=raw.filter(n=>n.t<LL);raw=[];for(let k=0;k*LL<r.len;k++)base.forEach(n=>{const t=n.t+k*LL;if(t<r.len)raw.push({...n,t,d:Math.min(n.d,LL)})});looped=Math.ceil(r.len/LL)}
   if(raw.length){r.seg.kbRaw=raw.map(n=>({t:n.t,d:n.d,m:n.m}));r.seg.melSrc='kb';r.seg.melody=kbNotes(raw);touch();toast(`${looped?Math.round(raw.length/looped):raw.length} Töne aufgenommen`+(looped?` · Loop ${LL/4} T ×${looped}`:''))}else toast('Nichts gespielt')
   if(st.running&&st.mode==='seg')stopTransport();liveNotes=[];drawVocalLane();renderVocal();ui()}
 press($('#sheetBtn'),()=>{st.sheet=!st.sheet;saveSoon();renderVocal()});
@@ -2300,7 +2318,7 @@ function makeFader(el,get,set){el.innerHTML='<span class="groove"></span><span c
   const end=()=>{if(drag){drag=null;saveSoon()}};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
   el.addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();set(clamp(get()+(e.key==='ArrowUp'?.05:-.05)));show();applyMix()}});show();return show}
 function buildMixer(){
-  const m=$('#mixer');m.innerHTML=CH.map(k=>`<div class="mch" data-k="${k}"><b>${CHN[k]}</b><div class="fader"></div>
+  const m=$('#mixer');m.innerHTML=MIXCH.map(k=>`<div class="mch" data-k="${k}"><b>${CHN[k]}</b><div class="fader"></div>
     <button class="chip m${mix[k].m?' on':''}">M</button><button class="chip s${mix[k].s?' on':''}">S</button>
     ${k==='click'?'<label style="visibility:hidden">Hall<input type="range"></label>':`<label>Hall<input type="range" min="0" max="0.8" step="0.01" value="${mix[k].r}"></label>`}</div>`).join('')
     +`<div class="mch"><b>Master</b><div class="fader" id="mf"></div></div>`;
