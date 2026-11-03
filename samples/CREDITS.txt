@@ -7,3 +7,7 @@ tr808/           - Roland TR-808 samples recorded by Michael Fischer, from machi
 tr707/           - Roland TR-707 samples recorded by Francois Dion, from machines.hyperreal.org,
                    distributed without licensing restrictions (via https://github.com/fluid-music/open-drums).
 All files were converted to mono WAV, trimmed and faded out.
+pop/             - AVL Drumkits "Black Pearl" (Pearl kit, Sabian cymbals) by Glen MacArthur, http://www.bandshed.net/avldrumkits/
+rock/            - AVL Drumkits "Red Zeppelin" (Ludwig kit, Porkpie snare, Zildjian cymbals) by Glen MacArthur
+                   (via https://github.com/studiorack/avl-drumkits) - CC BY-SA 3.0, see avl-drumkits-LICENSE-CC-BY-SA-3.0.txt.
+                   One velocity layer per piece, converted to mono WAV, trimmed and faded out (these adapted files: CC BY-SA 3.0).

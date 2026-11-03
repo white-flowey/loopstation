@@ -540,7 +540,7 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
       <div class="vsheet" id="vSheet"></div>
     </div>
   </section>
-  <div class="credit" style="text-align:right">Flügel: Salamander Grand Piano · Alexander Holm · CC BY 3.0 · Noten: VexFlow (MIT) · MP3: lamejs (LGPL)</div>
+  <div class="credit" style="text-align:right">Flügel: Salamander Grand Piano · Alexander Holm · CC BY 3.0 · Drums: AVL Drumkits · Glen MacArthur · CC BY-SA 3.0, VCSL (CC0), TR-808/707 · Noten: VexFlow (MIT) · MP3: lamejs (LGPL)</div>
 </div>
 
 <div class="pop" id="pmenu" hidden role="dialog" aria-label="Songteil"></div>
@@ -2162,10 +2162,21 @@ const SOUNDS=[{id:'crashL',mix:.45},{id:'tom1',mix:.7},{id:'tom2',mix:.7},{id:'r
 const DMIX=Object.fromEntries(SOUNDS.map(s=>[s.id,s.mix]));
 const DRUM_NAMES={crashL:'Crash L',tom1:'Tom 1',tom2:'Tom 2',ride:'Ride',crashR:'Crash R',hho:'HH auf',hhc:'HH zu',snare:'Snare',floor:'Floor',kick:'Kick'};
 const DRUM_SHORT={hho:'auf',hhc:'HH zu',pedal:'zu'};
-const KITS={synth:{label:'Akustik · Synth',theme:'natural'},pop:{label:'Pop',theme:'pop'},rock:{label:'Rock',theme:'rock'}};
+const KITS={ // as in the loopstation; Pop and Rock are now real kits (AVL Drumkits, CC BY-SA 3.0)
+  synth:{label:'Akustik · Synth',look:'kit',theme:'natural',names:DRUM_NAMES,short:DRUM_SHORT},
+  akustik:{label:'Akustik · Samples',files:true,look:'kit',theme:'wood',names:DRUM_NAMES,short:DRUM_SHORT},
+  pop:{label:'Pop · Pearl-Set',files:true,look:'kit',theme:'pop',names:DRUM_NAMES,short:DRUM_SHORT},
+  rock:{label:'Rock · Ludwig-Set',files:true,look:'kit',theme:'rock',names:DRUM_NAMES,short:DRUM_SHORT},
+  tr808:{label:'TR-808',files:true,look:'machine',theme:'m808',names:{...DRUM_NAMES,tom1:'Tom hoch',tom2:'Tom mitte',floor:'Tom tief',ride:'Cowbell',crashL:'Clap',crashR:'Cymbal'},short:DRUM_SHORT},
+  tr707:{label:'TR-707',files:true,look:'machine',theme:'m707',names:{...DRUM_NAMES,tom1:'Tom hoch',tom2:'Tom mitte',floor:'Tom tief',crashL:'Crash',crashR:'Clap'},short:DRUM_SHORT},
+  perc:{label:'Percussion',files:true,look:'perc',names:{kick:'Cajón Bass',snare:'Cajón Slap',tom1:'Bongo',tom2:'Conga',floor:'Tumba',hhc:'Shaker',hho:'Tambourin',ride:'Cowbell',crashL:'Clap',crashR:'Triangel'},short:{hho:'Tamb.',hhc:'Shaker',pedal:'Shaker'}},
+};
 const THEMES={
   natural:{shell:'#3b4149',head:'#e7e3d7',cym:'#c7a24f',cymD:'#a5833a',hw:'#8e969f',txt:'#3a3934',ctxt:'#4a3810',ktxt:'#e9ebee',pedal:'#3a4048'},
   pop:{shell:'#2f6fd6',head:'#f4f4f1',cym:'#d6b860',cymD:'#b49744',hw:'#c9d0d8',txt:'#2c3440',ctxt:'#4a3810',ktxt:'#f4f6fb',pedal:'#3a4048'},
+  wood:{shell:'#7a4a2b',head:'#ece4d2',cym:'#c29a48',cymD:'#9d7b34',hw:'#b5bcc4',txt:'#3d3326',ctxt:'#4a3810',ktxt:'#f1e6d6',pedal:'#3a4048'},
+  m808:{panel:'#1e1f22',strip:'#2a2b2f',txt:'#1c1a17',led:'#3a1410',ledOn:'#ff4a3d',keys:{crashL:'#e8432e',tom1:'#e8432e',tom2:'#f08a24',ride:'#f08a24',crashR:'#f2c230',hho:'#f2c230',hhc:'#efe9d8',snare:'#efe9d8',floor:'#e8432e',kick:'#f08a24'}},
+  m707:{panel:'#2b2d31',strip:'#3a3d42',txt:'#24262a',led:'#3d2a1d',ledOn:'#ff8a3d',keys:{crashL:'#d5d8dc',tom1:'#d5d8dc',tom2:'#d5d8dc',ride:'#d5d8dc',crashR:'#d5d8dc',hho:'#d5d8dc',hhc:'#d5d8dc',snare:'#f26b1d',floor:'#d5d8dc',kick:'#f26b1d'}},
   rock:{shell:'#b3261e',head:'#e6e2d8',cym:'#b78f3c',cymD:'#8f6e2a',hw:'#24272b',txt:'#33302b',ctxt:'#3f2e0b',ktxt:'#f4e9e7',pedal:'#2c2f34'},
 };
 const NS='http://www.w3.org/2000/svg',kitHost=$('#dKit');let FL={};
@@ -2174,11 +2185,52 @@ kitSvg.addEventListener('pointerdown',e=>{const t=e.target.closest('[data-s]');i
 kitSvg.addEventListener('contextmenu',e=>e.preventDefault());
 const addFl=(id,el)=>(FL[id]=FL[id]||[]).push(el);
 function buildKit(){const k=KITS[song.kit]?song.kit:'synth',c=THEMES[KITS[k].theme],svg=kitSvg;FL={};svg.innerHTML='';svg.setAttribute('aria-label',KITS[k].label);
-  const nm=id=>DRUM_NAMES[id],sh=x=>DRUM_SHORT[x];
+  const K=KITS[k],nm=id=>K.names[id],sh=x=>(K.short&&K.short[x])||DRUM_SHORT[x];
   const E=(tag,at,parent)=>{const e=document.createElementNS(NS,tag);for(const q in at)e.setAttribute(q,at[q]);(parent||svg).appendChild(e);return e};
   const G=id=>E('g',{'data-s':id});
   const T=(g,x,y,s,fill,size)=>{const t=E('text',{x,y,'text-anchor':'middle','dominant-baseline':'middle',fill,'font-size':size||22},g);t.textContent=s;return t};
   const F=(g,id,shape,at)=>addFl(id,E(shape,{...at,class:'fl',fill:'#fff'},g));
+  function drawMachine(c){ // drum machine: panel with two rows of instrument keys
+    E('rect',{x:16,y:40,width:1008,height:520,rx:18,fill:c.panel});
+    E('rect',{x:16,y:40,width:1008,height:44,rx:18,fill:c.strip});E('rect',{x:16,y:66,width:1008,height:18,fill:c.strip});
+    [0,1,2,3].forEach(i=>E('circle',{cx:60+i*44,cy:62,r:9,fill:'#55585e'}));
+    const order=[['crashL','tom1','tom2','ride','crashR'],['hho','hhc','snare','floor','kick']],w=172,h=206,gap=22,x0=(1040-5*w-4*gap)/2;
+    order.forEach((row,ri)=>row.forEach((id,ci)=>{
+      const x=x0+ci*(w+gap),y=110+ri*(h+gap),g=G(id);
+      E('rect',{x,y,width:w,height:h,rx:12,fill:c.keys[id]},g);
+      E('rect',{x:x+w/2-18,y:y+16,width:36,height:12,rx:3,fill:c.led},g);
+      const led=E('rect',{class:'fl',x:x+w/2-18,y:y+16,width:36,height:12,rx:3,fill:c.ledOn},g);addFl(id,led);
+      F(g,id,'rect',{x,y,width:w,height:h,rx:12});
+      T(g,x+w/2,y+h-28,nm(id),c.txt,22);
+    }));
+  }
+  function drawPerc(){ // hand percussion: cajón, bongos, congas, small instruments
+    const wood='#c08a52',woodD='#8c5a2b',skin='#eadfc8',shell='#7a3f22',metal='#b7bcc2',txt='#3b2a18';
+    {const g=G('snare');E('rect',{x:400,y:300,width:240,height:80,rx:10,fill:wood},g);F(g,'snare','rect',{x:400,y:300,width:240,height:80,rx:10});T(g,520,340,nm('snare'),txt,20)}
+    {const g=G('kick');E('rect',{x:400,y:384,width:240,height:206,rx:10,fill:wood},g);E('circle',{cx:520,cy:470,r:34,fill:woodD},g);
+      F(g,'kick','rect',{x:400,y:384,width:240,height:206,rx:10});T(g,520,550,nm('kick'),txt,22)}
+    {const g=G('tom1');E('rect',{x:300,y:222,width:70,height:18,rx:6,fill:woodD},g);
+      E('circle',{cx:262,cy:232,r:62,fill:shell},g);E('circle',{cx:262,cy:232,r:54,fill:skin},g);
+      E('circle',{cx:366,cy:226,r:50,fill:shell},g);E('circle',{cx:366,cy:226,r:43,fill:skin},g);
+      F(g,'tom1','circle',{cx:262,cy:232,r:62});F(g,'tom1','circle',{cx:366,cy:226,r:50});T(g,262,232,nm('tom1'),txt,20)}
+    const conga=(id,cx,cy,r)=>{const g=G(id);E('circle',{cx,cy,r,fill:shell},g);E('circle',{cx,cy,r:r-12,fill:skin},g);F(g,id,'circle',{cx,cy,r});T(g,cx,cy,nm(id),txt,22)};
+    conga('tom2',760,330,90);conga('floor',928,470,100);
+    {const g=G('ride');E('path',{d:'M500 80 L620 80 L645 220 L475 220 Z',fill:metal},g);E('rect',{x:540,y:58,width:40,height:24,rx:6,fill:'#6e7379'},g);
+      F(g,'ride','path',{d:'M500 80 L620 80 L645 220 L475 220 Z'});T(g,560,170,nm('ride'),'#2b2e33',20)}
+    {const g=G('crashR');E('path',{d:'M830 40 L910 180 L750 180 Z',fill:'none',stroke:metal,'stroke-width':12,'stroke-linejoin':'round'},g);
+      E('path',{d:'M830 40 L910 180 L750 180 Z',fill:'rgba(0,0,0,0)'},g);
+      F(g,'crashR','path',{d:'M830 40 L910 180 L750 180 Z'});T(g,830,212,nm('crashR'),'#c9ced4',20)}
+    {const g=G('crashL');E('ellipse',{cx:110,cy:110,rx:46,ry:62,fill:'#d9b08c',transform:'rotate(-18 110 110)'},g);
+      E('ellipse',{cx:170,cy:104,rx:46,ry:62,fill:'#c99a74',transform:'rotate(18 170 104)'},g);
+      F(g,'crashL','ellipse',{cx:140,cy:107,rx:90,ry:68});T(g,140,196,nm('crashL'),'#c9ced4',20)}
+    {const g=G('hhc');E('rect',{x:70,y:398,width:170,height:56,rx:28,fill:'#d9a441'},g);E('rect',{x:226,y:414,width:40,height:24,rx:8,fill:woodD},g);
+      F(g,'hhc','rect',{x:70,y:398,width:196,height:56,rx:28});T(g,155,427,nm('hhc'),txt,19)}
+    {const g=G('hho');E('circle',{cx:230,cy:526,r:62,fill:'none',stroke:wood,'stroke-width':18},g);E('circle',{cx:230,cy:526,r:52,fill:'rgba(0,0,0,0)'},g);
+      for(let k=0;k<6;k++){const a=k/6*Math.PI*2;E('rect',{x:230+Math.cos(a)*62-9,y:526+Math.sin(a)*62-6,width:18,height:12,rx:3,fill:metal},g)}
+      F(g,'hho','circle',{cx:230,cy:526,r:72});T(g,230,526,nm('hho'),'#c9ced4',18)}
+  }
+
+  if(K.look==='machine'){drawMachine(THEMES[K.theme]);return}if(K.look==='perc'){drawPerc();return}
   const drum=(id,cx,cy,r)=>{const g=G(id);E('circle',{cx,cy,r,fill:c.shell},g);E('circle',{cx,cy,r:r-10,fill:c.head},g);F(g,id,'circle',{cx,cy,r});T(g,cx,cy,nm(id),c.txt,22)};
   const cym=(id,cx,cy,r)=>{const g=G(id);E('circle',{cx,cy,r,fill:c.cym},g);E('circle',{cx,cy,r:r*.62,fill:'none',stroke:c.cymD,'stroke-width':2,opacity:.6},g);
     E('circle',{cx,cy,r:r*.2,fill:c.cymD},g);F(g,id,'circle',{cx,cy,r});T(g,cx,cy+r*.62,nm(id),c.ctxt,20)};
@@ -2197,7 +2249,14 @@ function buildKit(){const k=KITS[song.kit]?song.kit:'synth',c=THEMES[KITS[k].the
     F(g,'hhc','rect',{x:86,y:474,width:68,height:116,rx:10});T(g,120,556,sh('pedal'),'#e9ebee',17)}
 }
 function flash(id,a){if(st.lane!=='drums')return;(FL[id]||[]).forEach(el=>el.animate([{opacity:a*.45},{opacity:0}],{duration:a<1?260:200,easing:'ease-out'}))}
-async function setKit(k){if(!KITS[k])k='synth';song.kit=k;$('#kitSel').value=k;buildKit();touch();if(!BUF[k]){kitHost.classList.add('loading');await renderSet(k);kitHost.classList.remove('loading')}}
+const kitLoads={};let kitWarned=false;
+function loadKit(k){if(!KITS[k])return Promise.resolve();if(kitLoads[k])return kitLoads[k];
+  kitLoads[k]=KITS[k].files?(async()=>{BUF[k]={};let ok=0;
+    await Promise.all(SOUNDS.map(async x=>{try{const r=await fetch(new URL(`../samples/${k}/${x.id}.wav`,location.href));if(!r.ok)throw 0;const b=await decode(await r.arrayBuffer());BUF[k][x.id]=normalize(b.numberOfChannels>1?mono(b):b);ok++}catch(e){}}));
+    if(!ok){delete BUF[k];if(!kitWarned){kitWarned=true;toast('Sample-Kits gibt es nur in der installierten App (GitHub) – hier klingt das Synth-Set')}}})():renderSet(k);
+  return kitLoads[k]}
+function mono(b){const o=dec.createBuffer(1,b.length,b.sampleRate),d=o.getChannelData(0);for(let c=0;c<b.numberOfChannels;c++){const x=b.getChannelData(c);for(let i=0;i<x.length;i++)d[i]+=x[i]/b.numberOfChannels}return o}
+async function setKit(k){if(!KITS[k])k='synth';song.kit=k;$('#kitSel').value=k;buildKit();touch();if(!BUF[k]){kitHost.classList.add('loading');await loadKit(k);kitHost.classList.remove('loading')}}
 $('#kitSel').innerHTML=Object.entries(KITS).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
 $('#kitSel').addEventListener('change',e=>setKit(e.target.value));
 
@@ -2297,7 +2356,7 @@ function drawHead(){
   const x=bx(p.abs);if(x<scroller.scrollLeft+20||x>scroller.scrollLeft+scroller.clientWidth-60)scroller.scrollLeft=Math.max(0,x-80);
 }
 function frame(){drawHead();placeDPh();drawRing();drawDrumCons();vocalFrame();requestAnimationFrame(frame)}
-function renderAll(){if(typeof buildKit==='function'&&kitSvg.dataset.k!==song.kit){kitSvg.dataset.k=song.kit;$('#kitSel').value=song.kit;buildKit();if(!BUF[song.kit])renderSet(song.kit)}renderTimeline();renderPalCol();renderQ();ui()}
+function renderAll(){if(typeof buildKit==='function'&&kitSvg.dataset.k!==song.kit){kitSvg.dataset.k=song.kit;$('#kitSel').value=song.kit;buildKit();if(!BUF[song.kit])loadKit(song.kit)}renderTimeline();renderPalCol();renderQ();ui()}
 // canvases are redrawn whenever their box changes size (rotation, Safari bars, panes) – never stretched
 let reT=0;const reflow=()=>{cancelAnimationFrame(reT);reT=requestAnimationFrame(()=>renderTimeline())};
 addEventListener('resize',reflow);addEventListener('orientationchange',()=>{reflow();setTimeout(reflow,350)});
