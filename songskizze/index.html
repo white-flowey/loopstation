@@ -16,6 +16,7 @@
 <style>
 /* Layout: slim transport bar · one song-wide timeline (bar ruler with coloured parts, lanes beneath, playhead) · one playing surface. Settings live behind ⋯. Flat dark hardware look. */
 :root{
+  --sal:env(safe-area-inset-left,0px); --sar:env(safe-area-inset-right,0px); --vw:calc(100vw - var(--sal) - var(--sar));
   --bg:#111316; --panel:#1a1d21; --raised:#262a30; --raised2:#30353c; --line:#2c3137; --line2:#3a4048; --fg:#e9ebee; --dim:#7f8791; --faint:#4a515a;
   --rec:#ff4a3d; --play:#3ad17c; --dub:#ffb224;
   --c-intro:#8b93a1; --c-verse:#4f8ff7; --c-pre:#2fb8a6; --c-chorus:#f0a030; --c-bridge:#a77bf2; --c-outro:#8b93a1;
@@ -145,16 +146,16 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
 .popx{position:absolute;top:7px;right:7px;width:30px;height:30px;border-radius:8px;background:var(--raised);color:var(--dim);font-size:15px;line-height:1;display:grid;place-items:center;z-index:3}
 .popx:hover{color:var(--fg)}
 #more{min-width:240px}#more .chip{justify-content:flex-start;text-transform:none;letter-spacing:.02em;font-size:15px;height:38px;padding:0 12px}
-#expPop{width:min(380px,calc(100vw - 16px))}#expPop select{flex:1;min-width:0}
+#expPop{width:min(380px,calc(var(--vw) - 16px))}#expPop select{flex:1;min-width:0}
 .exgo{height:40px!important;background:var(--fg)!important;color:var(--bg)!important;font-size:14px!important;gap:8px}.exgo svg{width:16px;height:16px}.exgo:disabled{opacity:.6}
 .pop>.popx+*{padding-right:36px}
 .mixer>.popx+*{padding-right:0}
 
-.sheet{position:fixed;left:50%;transform:translateX(-50%);z-index:40;width:min(700px,calc(100vw - 24px));box-sizing:border-box;background:var(--panel);border:1px solid var(--line2);border-radius:16px;
+.sheet{position:fixed;left:calc(50% + (var(--sal) - var(--sar)) / 2);transform:translateX(-50%);z-index:40;width:min(700px,calc(var(--vw) - 24px));box-sizing:border-box;background:var(--panel);border:1px solid var(--line2);border-radius:16px;
   padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:12px}
 #editor{bottom:calc(14px + env(safe-area-inset-bottom,0px))}
 #start{top:50%;transform:translate(-50%,-50%);gap:16px}
-#start{gap:14px;width:min(620px,calc(100vw - 24px))}
+#start{gap:14px;width:min(620px,calc(var(--vw) - 24px))}
 #start h3{align-items:center}
 .okbtn{width:44px;height:44px;border-radius:50%;color:var(--play);display:grid;place-items:center;margin:-6px -6px -6px 0}.okbtn svg{width:40px;height:40px}.okbtn:active{transform:scale(.94)}
 .srow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.srow select{height:38px;font-size:15px}
@@ -168,7 +169,7 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
 .shade{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45)}
 .mixer{max-height:calc(100vh - 16px);max-height:calc(100dvh - 16px)}
 .mixer{position:fixed;z-index:36;background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:12px;
-  box-shadow:0 20px 50px rgba(0,0,0,.6);display:flex;gap:10px;max-width:calc(100vw - 24px);overflow-x:auto;box-sizing:border-box}
+  box-shadow:0 20px 50px rgba(0,0,0,.6);display:flex;gap:10px;max-width:calc(var(--vw) - 24px);overflow-x:auto;box-sizing:border-box}
 .mch{width:64px;display:flex;flex-direction:column;align-items:center;gap:7px;flex:none}
 .mch b{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
 .mch .chip{height:26px;width:52px;padding:0;font-size:12px}
@@ -182,7 +183,7 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
 .fader .cap{position:absolute;left:50%;width:32px;height:18px;transform:translate(-50%,-50%);border-radius:3px;background:var(--raised2);border:1px solid #4a515a}
 .fader .cap::after{content:"";position:absolute;left:4px;right:4px;top:50%;height:2px;margin-top:-1px;background:var(--fg)}
 .toast{position:fixed;left:50%;top:calc(60px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:50;background:var(--fg);color:var(--bg);border-radius:10px;padding:9px 14px;font-weight:600;font-size:15px;
-  pointer-events:none;opacity:0;transition:opacity .2s;max-width:calc(100vw - 40px);text-align:center}
+  pointer-events:none;opacity:0;transition:opacity .2s;max-width:calc(var(--vw) - 40px);text-align:center}
 .toast.show{opacity:1}
 @media (min-width:900px) and (min-height:640px){html,body{overflow:hidden}.app{height:100%}}
 @media (max-width:899px){.side{width:150px}.pal,.dpads{grid-template-columns:repeat(3,minmax(0,1fr))}.txt{grid-template-columns:1fr}textarea{min-height:120px}
@@ -266,8 +267,8 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
 .ptile u{text-decoration:none;color:var(--faint)}
 .ptile .gl{position:absolute;inset:0;background:var(--fg);opacity:0;pointer-events:none}
 .ptile.down .gl{opacity:.16}
-#palOv{width:min(430px,calc(100vw - 24px))}
-#ctx{width:min(380px,calc(100vw - 24px));max-height:80vh;overflow:auto}
+#palOv{width:min(430px,calc(var(--vw) - 24px))}
+#ctx{width:min(380px,calc(var(--vw) - 24px));max-height:80vh;overflow:auto}
 .pmr.mh{flex-wrap:nowrap}.pmr.mh .chip.ib{width:32px}.pmr.mh .chip.ib svg{width:17px;height:17px}
 .lname{font-size:17px;font-weight:700;border-left:3px solid var(--pc);padding:2px 6px 2px 7px;border-radius:0 6px 6px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;cursor:text}
 .lname:hover{background:var(--raised)}
@@ -325,12 +326,12 @@ textarea{flex:1;width:100%;box-sizing:border-box;resize:none;background:#0e0f12;
 .check{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--fg);text-transform:none;letter-spacing:.02em}
 .check input{width:20px;height:20px;accent-color:var(--fg)}
 /* part list popup */
-#partPop{width:min(640px,calc(100vw - 16px));max-height:min(70vh,520px)}
+#partPop{width:min(640px,calc(var(--vw) - 16px));max-height:min(70vh,520px)}
 .plist{display:flex;flex-direction:column;gap:4px;overflow-y:auto;min-height:0;max-height:min(56vh,420px)}
 .prow{display:flex;align-items:center;gap:6px;height:40px;border-radius:8px;background:var(--raised);padding:0 6px 0 4px;border-left:3px solid var(--pc);touch-action:pan-y;cursor:pointer;flex:none}
 .prow .pnm{touch-action:none;cursor:grab;padding:0 4px;align-self:stretch;display:flex;align-items:center}
 .padd2{justify-content:center;border-left:0;background:none;border:1px dashed var(--line2);color:var(--dim);font-size:20px;width:100%}
-#insPop{width:min(560px,calc(100vw - 16px));z-index:37;box-shadow:0 18px 60px rgba(0,0,0,.8)}.insrow select{flex:1;min-width:0}.okbtn.sm{width:36px;height:36px;margin:-4px -2px -4px 0}.okbtn.sm svg{width:32px;height:32px}
+#insPop{width:min(560px,calc(var(--vw) - 16px));z-index:37;box-shadow:0 18px 60px rgba(0,0,0,.8)}.insrow select{flex:1;min-width:0}.okbtn.sm{width:36px;height:36px;margin:-4px -2px -4px 0}.okbtn.sm svg{width:32px;height:32px}
 .prow.sel{background:var(--raised2);box-shadow:inset 0 0 0 1px var(--fg)}
 .prow.drag{z-index:2;box-shadow:0 8px 22px rgba(0,0,0,.6);position:relative;opacity:.95}
 .prow select{height:28px;font-size:13px;padding:0 22px 0 7px;background-position:right 7px center;max-width:150px;flex:none}
@@ -1360,8 +1361,10 @@ function fitY(el){const a=el._a;if(!a||el.hidden)return;const h=el.offsetHeight,
 const popRO=window.ResizeObserver?new ResizeObserver(es=>es.forEach(e=>fitY(e.target))):null;
 function anchorPop(el,below,above){el._a={below,above};if(popRO&&!el._ro){el._ro=1;popRO.observe(el)}fitY(el)}
 addEventListener('resize',()=>document.querySelectorAll('.pop,.mixer').forEach(fitY));
+const SAFE=()=>{const cs=getComputedStyle(document.documentElement);return{l:parseFloat(cs.getPropertyValue('--sal'))||0,r:parseFloat(cs.getPropertyValue('--sar'))||0}};
+const clampX=(x,w)=>{const S=SAFE();return Math.max(8+S.l,Math.min(x,innerWidth-w-8-S.r))};
 function popUnder(el,anchor,alignRight){const r=anchor.getBoundingClientRect();el.hidden=false;const w=el.offsetWidth;
-  let x=alignRight?r.right-w:r.left;el.style.left=Math.max(8,Math.min(x,innerWidth-w-8))+'px';anchorPop(el,r.bottom+6,r.top-6)}
+  let x=alignRight?r.right-w:r.left;el.style.left=clampX(x,w)+'px';anchorPop(el,r.bottom+6,r.top-6)}
 press($('#bpmBtn'),()=>{if(!bpmPop.hidden){bpmPop.hidden=true;return}popUnder(bpmPop,$('#bpmBtn'),true);$('#bpmIn').value=song.bpm});
 press($('#bDown'),()=>setBpm(song.bpm-1));press($('#bUp'),()=>setBpm(song.bpm+1));press($('#bTap'),()=>tapTempo(setBpm));
 $('#bpmIn').addEventListener('change',e=>setBpm(+e.target.value||song.bpm));$('#bpmIn').addEventListener('keydown',e=>{if(e.key==='Enter'){setBpm(+e.target.value||song.bpm);e.target.blur()}});
@@ -1500,7 +1503,7 @@ knob.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();t
 /* ---- part popup ---- */
 const pm=$('#pmenu');let pmI=-1,pmWhere='after';
 function placePop(el,anchor){const r=anchor.getBoundingClientRect();el.hidden=false;const w=el.offsetWidth;
-  el.style.left=Math.max(8,Math.min(r.left,innerWidth-w-8))+'px';anchorPop(el,r.bottom+6,r.top-6)}
+  el.style.left=clampX(r.left,w)+'px';anchorPop(el,r.bottom+6,r.top-6)}
 function openPartMenu(i,anchor){pmI=i;const g=segOf(i);
   pm.innerHTML=`<div class="pmr"><b style="--pc:var(--c-${g.type})">${g.name}</b><span class="sp"></span>${[4,8,12,16].map(n=>`<button class="chip${g.bars===n?' on':''}" data-bars="${n}">${n}</button>`).join('')}<span class="unit">Takte</span></div>
    <div class="pmr"><button class="chip" data-act="copy">⎘ Kopie</button><button class="chip" data-act="link">↺ Link</button><span class="unit">nach</span>
@@ -1673,7 +1676,7 @@ function resyncLoop(){if(st.running&&st.mode==='reg'){if(curReg())startTransport
   area.addEventListener('pointermove',mv);area.addEventListener('pointerup',up);area.addEventListener('pointercancel',up)}));
 
 /* ---- context menus ---- */
-function placeAt(el,x,y){el.hidden=false;const w=el.offsetWidth;el.style.left=Math.max(8,Math.min(x-20,innerWidth-w-8))+'px';anchorPop(el,y+12,y-10)}
+function placeAt(el,x,y){el.hidden=false;const w=el.offsetWidth;el.style.left=clampX(x-20,w)+'px';anchorPop(el,y+12,y-10)}
 function closeCtx(){ctx.hidden=true}
 const patChips=(cur,attr)=>PATS.map(p=>`<button class="chip${cur===p.id?' on':''}" ${attr}="${p.id}">${p.n}</button>`).join('');
 const esc=t=>String(t).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
